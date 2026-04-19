@@ -8,15 +8,20 @@ datasource db {
 }
 
 model Restaurant {
-  storeNumber  Int     @id @default(autoincrement())
-  phoneNumber  String
-  name          String
-  addressId    Int
-  orders        Order[]
+  storeNumber      Int        @id @default(autoincrement())
+  phoneNumber      String
+  name             String
+  addressId        Int
+  orders           Order[]
+  address          Address?   @relation(fields: [addressAddressId], references: [addressId])
+  addressAddressId Int?
+  employees        Employee[]
+
+  @@map("restaurant")
 }
 
 model ProductType {
-  typeId     Int       @id @default(autoincrement())
+  typeId      Int       @id @default(autoincrement())
   name        String
   description String?
   products    Product[]
@@ -25,73 +30,211 @@ model ProductType {
 }
 
 model OrderableItem {
-  itemId      Int      @id @default(autoincrement())
+  itemId      Int         @id @default(autoincrement())
   itemType    String
-  isAvailable Boolean  @default(true)
-  product      Product?
-  package      Package?
+  isAvailable Boolean     @default(true)
+  product     Product?
+  package     Package?
   orderItems  OrderItem[]
 
   @@map("orderable_item")
 }
 
 model Product {
-  productId     Int           @id
-  name           String
-  basePrice     Decimal       @db.Decimal(10, 2)
-  typeId        Int
-  productType   ProductType   @relation(fields: [typeId], references: [typeId])
-  orderableItem OrderableItem @relation(fields: [productId], references: [itemId])
-  packageProducts PackageProduct[]
+  productId             Int                    @id
+  name                  String
+  basePrice             Decimal                @db.Decimal(10, 2)
+  typeId                Int
+  productType           ProductType            @relation(fields: [typeId], references: [typeId])
+  orderableItem         OrderableItem          @relation(fields: [productId], references: [itemId])
+  packageProducts       PackageProduct[]
+  inventoryTransactions InventoryTransaction[]
 
   @@map("product")
 }
 
 model Package {
-  packageId     Int              @id
-  name           String
-  bundlePrice   Decimal          @db.Decimal(10, 2)
-  orderableItem OrderableItem    @relation(fields: [packageId], references: [itemId])
-  packageProducts PackageProduct[]
+  packageId             Int                    @id
+  name                  String
+  bundlePrice           Decimal                @db.Decimal(10, 2)
+  orderableItem         OrderableItem          @relation(fields: [packageId], references: [itemId])
+  packageProducts       PackageProduct[]
+  inventoryTransactions InventoryTransaction[]
 
   @@map("package")
 }
 
 model PackageProduct {
-  productId  Int
-  packageId  Int
-  product     Product @relation(fields: [productId], references: [productId])
-  package     Package @relation(fields: [packageId], references: [packageId])
+  productId Int
+  packageId Int
+  product   Product @relation(fields: [productId], references: [productId])
+  package   Package @relation(fields: [packageId], references: [packageId])
 
   @@id([productId, packageId])
   @@map("package_product")
 }
 
 model Order {
-  orderId           Int         @id @default(autoincrement())
-  customerName      String
-  timestamp          DateTime    @default(now())
-  preparationStatus String      @default("pending")
-  storeNumber       Int
-  discount           Decimal?    @db.Decimal(10, 2)
-  total              Decimal     @db.Decimal(10, 2)
-  subtotal           Decimal     @db.Decimal(10, 2)
-  tip                Decimal?    @db.Decimal(10, 2)
-  taxPercent        Decimal     @db.Decimal(5, 2)
-  restaurant         Restaurant  @relation(fields: [storeNumber], references: [storeNumber])
-  orderItems        OrderItem[]
+  orderId            Int             @id @default(autoincrement())
+  customerName       String
+  timestamp          DateTime        @default(now())
+  preparationStatus  String          @default("pending")
+  storeNumber        Int
+  discount           Decimal?        @db.Decimal(10, 2)
+  total              Decimal         @db.Decimal(10, 2)
+  subtotal           Decimal         @db.Decimal(10, 2)
+  tip                Decimal?        @db.Decimal(10, 2)
+  taxPercent         Decimal         @db.Decimal(5, 2)
+  restaurant         Restaurant      @relation(fields: [storeNumber], references: [storeNumber])
+  orderItems         OrderItem[]
+  employeeId         Int?
+  paymentStatus      String          @default("unpaid")
+  payments           Payment[]
+  employee           Employee?       @relation(fields: [employeeEmployeeId], references: [employeeId])
+  employeeEmployeeId Int?
+  orderDiscounts     OrderDiscount[]
 
   @@map("order")
 }
 
 model OrderItem {
   orderItemId     Int           @id @default(autoincrement())
-  orderId          Int
-  itemId           Int
-  quantity          Int
+  orderId         Int
+  itemId          Int
+  quantity        Int
   priceAtPurchase Decimal       @db.Decimal(10, 2)
-  order             Order         @relation(fields: [orderId], references: [orderId])
-  orderableItem    OrderableItem @relation(fields: [itemId], references: [itemId])
+  order           Order         @relation(fields: [orderId], references: [orderId])
+  orderableItem   OrderableItem @relation(fields: [itemId], references: [itemId])
 
   @@map("order_item")
+}
+
+model Address {
+  addressId   Int          @id @default(autoincrement())
+  line1       String
+  line2       String?
+  city        String
+  state       String
+  country     String
+  postalCode  String
+  restaurants Restaurant[]
+  employees   Employee[]
+
+  @@map("address")
+}
+
+model Employee {
+  employeeId       Int            @id @default(autoincrement())
+  dateOfBirth      DateTime
+  storeNumber      Int
+  employmentStatus String         @default("active")
+  firstName        String
+  lastName         String
+  addressId        Int
+  hireDate         DateTime
+  salary           Decimal        @db.Decimal(10, 2)
+  restaurant       Restaurant     @relation(fields: [storeNumber], references: [storeNumber])
+  address          Address        @relation(fields: [addressId], references: [addressId])
+  employeeRoles    EmployeeRole[]
+  shifts           Shift[]
+  orders           Order[]
+
+  @@map("employee")
+}
+
+model Role {
+  roleId        Int            @id @default(autoincrement())
+  name          String
+  description   String?
+  employeeRoles EmployeeRole[]
+
+  @@map("role")
+}
+
+model EmployeeRole {
+  employeeId Int
+  roleId     Int
+  employee   Employee @relation(fields: [employeeId], references: [employeeId])
+  role       Role     @relation(fields: [roleId], references: [roleId])
+
+  @@id([employeeId, roleId])
+  @@map("employee_role")
+}
+
+model Shift {
+  shiftId           Int       @id @default(autoincrement())
+  employeeId        Int
+  roleId            Int
+  startTimestamp    DateTime
+  endTimestamp      DateTime
+  clockInTimestamp  DateTime?
+  clockOutTimestamp DateTime?
+  employee          Employee  @relation(fields: [employeeId], references: [employeeId])
+
+  @@map("shift")
+}
+
+model Payment {
+  paymentId Int     @id @default(autoincrement())
+  orderId   Int
+  type      String
+  amount    Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [orderId])
+
+  @@map("payment")
+}
+
+model Card {
+  cardId             Int                 @id @default(autoincrement())
+  cardholderName     String
+  token              String
+  lastFour           String
+  brand              String
+  expirationMonth    Int
+  expirationYear     Int
+  electronicPayments ElectronicPayment[]
+
+  @@map("card")
+}
+
+model ElectronicPayment {
+  cardId    Int
+  paymentId Int
+  card      Card @relation(fields: [cardId], references: [cardId])
+
+  @@id([cardId, paymentId])
+  @@map("electronic_payment")
+}
+
+model InventoryTransaction {
+  transactionId    Int      @id @default(autoincrement())
+  productId        Int
+  quantityChange   Int
+  reason           String
+  timestamp        DateTime @default(now())
+  product          Product  @relation(fields: [productId], references: [productId])
+  package          Package? @relation(fields: [packagePackageId], references: [packageId])
+  packagePackageId Int?
+
+  @@map("inventory_transaction")
+}
+
+model Discount {
+  discountId     Int             @id @default(autoincrement())
+  name           String
+  value          Decimal         @db.Decimal(10, 2)
+  type           String
+  orderDiscounts OrderDiscount[]
+
+  @@map("discount")
+}
+
+model OrderDiscount {
+  discountId Int
+  orderId    Int
+  discount   Discount @relation(fields: [discountId], references: [discountId])
+  order      Order    @relation(fields: [orderId], references: [orderId])
+
+  @@id([discountId, orderId])
+  @@map("order_discount")
 }
