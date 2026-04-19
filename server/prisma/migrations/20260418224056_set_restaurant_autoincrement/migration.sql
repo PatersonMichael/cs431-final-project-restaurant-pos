@@ -1,0 +1,1 @@
+ALTER TABLE restaurant AUTO_INCREMENT = 100;

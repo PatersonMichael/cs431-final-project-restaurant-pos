@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Restaurant {
+  storeNumber  Int     @id @default(autoincrement())
+  phoneNumber  String
+  name          String
+  addressId    Int
+  orders        Order[]
+}
+
+model ProductType {
+  typeId     Int       @id @default(autoincrement())
+  name        String
+  description String?
+  products    Product[]
+
+  @@map("product_type")
+}
+
+model OrderableItem {
+  itemId      Int      @id @default(autoincrement())
+  itemType    String
+  isAvailable Boolean  @default(true)
+  product      Product?
+  package      Package?
+  orderItems  OrderItem[]
+
+  @@map("orderable_item")
+}
+
+model Product {
+  productId     Int           @id
+  name           String
+  basePrice     Decimal       @db.Decimal(10, 2)
+  typeId        Int
+  productType   ProductType   @relation(fields: [typeId], references: [typeId])
+  orderableItem OrderableItem @relation(fields: [productId], references: [itemId])
+  packageProducts PackageProduct[]
+
+  @@map("product")
+}
+
+model Package {
+  packageId     Int              @id
+  name           String
+  bundlePrice   Decimal          @db.Decimal(10, 2)
+  orderableItem OrderableItem    @relation(fields: [packageId], references: [itemId])
+  packageProducts PackageProduct[]
+
+  @@map("package")
+}
+
+model PackageProduct {
+  productId  Int
+  packageId  Int
+  product     Product @relation(fields: [productId], references: [productId])
+  package     Package @relation(fields: [packageId], references: [packageId])
+
+  @@id([productId, packageId])
+  @@map("package_product")
+}
+
+model Order {
+  orderId           Int         @id @default(autoincrement())
+  customerName      String
+  timestamp          DateTime    @default(now())
+  preparationStatus String      @default("pending")
+  storeNumber       Int
+  discount           Decimal?    @db.Decimal(10, 2)
+  total              Decimal     @db.Decimal(10, 2)
+  subtotal           Decimal     @db.Decimal(10, 2)
+  tip                Decimal?    @db.Decimal(10, 2)
+  taxPercent        Decimal     @db.Decimal(5, 2)
+  restaurant         Restaurant  @relation(fields: [storeNumber], references: [storeNumber])
+  orderItems        OrderItem[]
+
+  @@map("order")
+}
+
+model OrderItem {
+  orderItemId     Int           @id @default(autoincrement())
+  orderId          Int
+  itemId           Int
+  quantity          Int
+  priceAtPurchase Decimal       @db.Decimal(10, 2)
+  order             Order         @relation(fields: [orderId], references: [orderId])
+  orderableItem    OrderableItem @relation(fields: [itemId], references: [itemId])
+
+  @@map("order_item")
+}
