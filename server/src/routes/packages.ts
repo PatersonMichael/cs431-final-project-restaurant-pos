@@ -1,10 +1,11 @@
 import { Router, type Request, type Response } from "express";
 import prisma from "../db.ts";
+import asyncHandler from "../utils/asynchHandler.ts";
 
 const router = Router();
 
 // Get all available packages with their constituent products
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", asyncHandler(async (req: Request, res: Response) => {
   const packages = await prisma.package.findMany({
     where: {
       orderableItem: {
@@ -21,10 +22,10 @@ router.get("/", async (req: Request, res: Response) => {
     },
   });
   res.json(packages);
-});
+}));
 
 // Get a single package by id
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", asyncHandler(async (req: Request, res: Response) => {
   const pkg = await prisma.package.findUnique({
     where: { packageId: Number(req.params.id) },
     include: {
@@ -41,10 +42,10 @@ router.get("/:id", async (req: Request, res: Response) => {
     return;
   }
   res.json(pkg);
-});
+}));
 
 // Create a package with its constituent products
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", asyncHandler(async (req: Request, res: Response) => {
   const { name, bundlePrice, productIds } = req.body;
   const pkg = await prisma.orderableItem.create({
     data: {
@@ -72,16 +73,16 @@ router.post("/", async (req: Request, res: Response) => {
     },
   });
   res.status(201).json(pkg);
-});
+}));
 
 // Toggle package availability
-router.put("/:id/availability", async (req: Request, res: Response) => {
+router.put("/:id/availability", asyncHandler(async (req: Request, res: Response) => {
   const { isAvailable } = req.body;
   const item = await prisma.orderableItem.update({
     where: { itemId: Number(req.params.id) },
     data: { isAvailable },
   });
   res.json(item);
-});
+}));
 
 export default router;

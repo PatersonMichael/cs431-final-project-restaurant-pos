@@ -13,8 +13,7 @@ model Restaurant {
   name             String
   addressId        Int
   orders           Order[]
-  address          Address?   @relation(fields: [addressAddressId], references: [addressId])
-  addressAddressId Int?
+  address          Address?   @relation(fields: [addressId], references: [addressId])
   employees        Employee[]
 
   @@map("restaurant")
@@ -90,8 +89,7 @@ model Order {
   employeeId         Int?
   paymentStatus      String          @default("unpaid")
   payments           Payment[]
-  employee           Employee?       @relation(fields: [employeeEmployeeId], references: [employeeId])
-  employeeEmployeeId Int?
+  employee           Employee?       @relation(fields: [employeeId], references: [employeeId])
   orderDiscounts     OrderDiscount[]
 
   @@map("order")
@@ -179,7 +177,8 @@ model Payment {
   orderId   Int
   type      String
   amount    Decimal @db.Decimal(10, 2)
-  order     Order   @relation(fields: [orderId], references: [orderId])
+  order              Order               @relation(fields: [orderId], references: [orderId])
+  electronicPayments ElectronicPayment[]
 
   @@map("payment")
 }
@@ -200,7 +199,8 @@ model Card {
 model ElectronicPayment {
   cardId    Int
   paymentId Int
-  card      Card @relation(fields: [cardId], references: [cardId])
+  card      Card    @relation(fields: [cardId], references: [cardId])
+  payment   Payment @relation(fields: [paymentId], references: [paymentId])
 
   @@id([cardId, paymentId])
   @@map("electronic_payment")
