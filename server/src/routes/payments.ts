@@ -14,9 +14,13 @@ router.get("/orders/:orderId", asyncHandler(async (req: Request, res: Response) 
 
 // Record a payment for an order
 router.post("/", asyncHandler(async (req: Request, res: Response) => {
-  const { orderId, type, amount } = req.body;
+  const { orderId, type, amount, cardData } = req.body;
 
-  // Get the order to check total and current payment status
+  if (type === "card" && !cardData) {
+    res.status(422).json({ error: "Card data is required for card payments" });
+    return;
+  }
+
   const order = await prisma.order.findUnique({
     where: { orderId },
     include: { payments: true },
@@ -38,6 +42,17 @@ router.post("/", asyncHandler(async (req: Request, res: Response) => {
   const payment = await prisma.payment.create({
     data: { orderId, type, amount },
   });
+
+  if (type === "card") {
+    const { cardholderName, lastFour, brand, expirationMonth, expirationYear } = cardData;
+    const token = `tok_${brand.toLowerCase()}_${lastFour}_${Date.now()}`;
+    const card = await prisma.card.create({
+      data: { cardholderName, token, lastFour, brand, expirationMonth, expirationYear },
+    });
+    await prisma.electronicPayment.create({
+      data: { cardId: card.cardId, paymentId: payment.paymentId },
+    });
+  }
 
   const totalPaid = alreadyPaid + Number(amount);
   const paymentStatus = totalPaid >= Number(order.total) ? "paid" : "unpaid";

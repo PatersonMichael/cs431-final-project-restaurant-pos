@@ -82,7 +82,7 @@ router.post("/", asyncHandler(async (req: Request, res: Response) => {
     }, 0);
   }
 
-  const total = Math.max(0, preTaxTotal - discountAmount);
+  const total = Math.round(Math.max(0, preTaxTotal - discountAmount) * 100) / 100;
 
   const order = await prisma.order.create({
     data: {
