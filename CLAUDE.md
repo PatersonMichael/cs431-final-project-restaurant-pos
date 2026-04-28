@@ -19,7 +19,7 @@ CS431 Restaurant POS — a tab-based point-of-sale web application with three ro
 
 Read these before doing anything else. They are authoritative — when in doubt, defer to them.
 
-1. **`docs/PRD.md`** — Product & Software Requirements. Defines features (FR-IDs), API contracts, schema additions, work plan phases, and acceptance criteria. **This is the spec.**
+1. **`docs/PRD_SRD.md`** — Product & Software Requirements. Defines features (FR-IDs), API contracts, schema additions, work plan phases, and acceptance criteria. **This is the spec.**
 2. **`docs/STYLE_GUIDE.md`** — Frontend style guide. Design tokens, component patterns, density rules. **This is the visual contract.**
 3. **`docs/data_dictionary.md`** — The database schema. Field names, types, nullability, FK directions.
 4. **`docs/Restaurant_POS_ERD.png`** — ER diagram. Visual reference for the schema.
