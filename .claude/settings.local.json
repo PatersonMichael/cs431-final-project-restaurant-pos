@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node_modules/.bin/prisma migrate *)",
+      "Bash(node_modules/.bin/prisma generate *)",
+      "Bash(node_modules/.bin/tsx src/seed.ts)",
+      "Bash(mysql -u root '-pPassword12#' restaurantpos -e ' *)",
+      "Bash(node_modules/.bin/tsx -e ' *)",
+      "Bash(node_modules/.bin/tsx src/verify.ts)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(node -e \"import\\('zod'\\).then\\(z => console.log\\('zod ok:', z.z.string\\(\\).parse\\('hi'\\)\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx prisma *)",
+      "Bash(grep -n 'quantity_change\\\\|quantityChange\\\\|$queryRaw' /c/Workspace/csueb/CS431-Database-Architecture/cs431-final-project-restaurant-pos/.claude/worktrees/busy-perlman-167cf6/server/src/services/inventoryService.ts)",
+      "Bash(grep -A 30 \"CREATE TABLE \\\\`product\\\\`\\\\b\" \"/c/Workspace/csueb/CS431-Database-Architecture/cs431-final-project-restaurant-pos/.claude/worktrees/busy-perlman-167cf6/server/prisma/migrations/20260418232731_camelcase_relations/migration.sql\")",
+      "Bash(grep -A 15 \"CREATE TABLE \\\\`inventory_transaction\\\\`\\\\|CREATE TABLE \\\\`orderable_item\\\\`\\\\|CREATE TABLE \\\\`product_type\\\\`\" \"/c/Workspace/csueb/CS431-Database-Architecture/cs431-final-project-restaurant-pos/.claude/worktrees/busy-perlman-167cf6/server/prisma/migrations/20260418232731_camelcase_relations/migration.sql\")",
+      "Bash(grep \"CREATE\\\\|ADD COLUMN\\\\|\\\\`\")"
+    ]
+  }
+}

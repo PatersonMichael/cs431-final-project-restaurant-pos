@@ -16,45 +16,45 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   await prisma.$executeRaw`ALTER TABLE restaurant AUTO_INCREMENT = 100`;
 
-  // ── Addresses ─────────────────────────────────────────────────────────────
+  // ── Addresses (13 total) ──────────────────────────────────────────────────
   const restaurantAddress = await prisma.address.create({
-    data: {
-      line1: "123 Main St",
-      city: "Oakland",
-      state: "CA",
-      country: "US",
-      postalCode: "94601",
-    },
+    data: { line1: "123 Main St", city: "Oakland", state: "CA", country: "US", postalCode: "94601" },
   });
-
-  const aliceAddress = await prisma.address.create({
-    data: {
-      line1: "456 Oak Ave",
-      city: "Oakland",
-      state: "CA",
-      country: "US",
-      postalCode: "94602",
-    },
+  const addr2 = await prisma.address.create({
+    data: { line1: "456 Oak Ave", city: "Oakland", state: "CA", country: "US", postalCode: "94602" },
   });
-
-  const bobAddress = await prisma.address.create({
-    data: {
-      line1: "789 Pine Rd",
-      city: "Oakland",
-      state: "CA",
-      country: "US",
-      postalCode: "94603",
-    },
+  const addr3 = await prisma.address.create({
+    data: { line1: "789 Pine Rd", city: "Oakland", state: "CA", country: "US", postalCode: "94603" },
   });
-
-  const carolAddress = await prisma.address.create({
-    data: {
-      line1: "321 Elm St",
-      city: "Oakland",
-      state: "CA",
-      country: "US",
-      postalCode: "94604",
-    },
+  const addr4 = await prisma.address.create({
+    data: { line1: "321 Elm St", city: "Oakland", state: "CA", country: "US", postalCode: "94604" },
+  });
+  const addr5 = await prisma.address.create({
+    data: { line1: "654 Maple Dr", city: "Oakland", state: "CA", country: "US", postalCode: "94605" },
+  });
+  const addr6 = await prisma.address.create({
+    data: { line1: "987 Cedar Ln", city: "Oakland", state: "CA", country: "US", postalCode: "94606" },
+  });
+  const addr7 = await prisma.address.create({
+    data: { line1: "111 Birch Blvd", city: "Alameda", state: "CA", country: "US", postalCode: "94501" },
+  });
+  const addr8 = await prisma.address.create({
+    data: { line1: "222 Walnut Ave", city: "Alameda", state: "CA", country: "US", postalCode: "94502" },
+  });
+  const addr9 = await prisma.address.create({
+    data: { line1: "333 Spruce St", city: "Berkeley", state: "CA", country: "US", postalCode: "94701" },
+  });
+  const addr10 = await prisma.address.create({
+    data: { line1: "444 Ash Way", city: "Berkeley", state: "CA", country: "US", postalCode: "94702" },
+  });
+  const addr11 = await prisma.address.create({
+    data: { line1: "555 Poplar Ct", city: "Emeryville", state: "CA", country: "US", postalCode: "94608" },
+  });
+  const addr12 = await prisma.address.create({
+    data: { line1: "666 Willow Rd", city: "Emeryville", state: "CA", country: "US", postalCode: "94609" },
+  });
+  const addr13 = await prisma.address.create({
+    data: { line1: "777 Sycamore Ave", city: "San Leandro", state: "CA", country: "US", postalCode: "94577" },
   });
 
   // ── Restaurant ────────────────────────────────────────────────────────────
@@ -66,75 +66,162 @@ async function main() {
     },
   });
 
-  // ── Product types ─────────────────────────────────────────────────────────
-  const foodType = await prisma.productType.create({
-    data: { name: "Food", description: "Food items" },
-  });
+  // ── Product types (10 total) ───────────────────────────────────────────────
+  const typeBurger    = await prisma.productType.create({ data: { name: "Burger",     description: "Burgers and smash patties" } });
+  const typeSandwich  = await prisma.productType.create({ data: { name: "Sandwich",   description: "Cold and hot sandwiches" } });
+  const typeSalad     = await prisma.productType.create({ data: { name: "Salad",      description: "Fresh salads and bowls" } });
+  const typeSide      = await prisma.productType.create({ data: { name: "Side",       description: "Fries, rings, and sides" } });
+  const typeBeverage  = await prisma.productType.create({ data: { name: "Beverage",   description: "Drinks and shakes" } });
+  const typeDessert   = await prisma.productType.create({ data: { name: "Dessert",    description: "Sweets and desserts" } });
+  const typeBreakfast = await prisma.productType.create({ data: { name: "Breakfast",  description: "Morning items, served until 11am" } });
+  const typeKids      = await prisma.productType.create({ data: { name: "Kids",       description: "Smaller portions for kids" } });
+  const typeAlcohol   = await prisma.productType.create({ data: { name: "Alcohol",    description: "Beer, wine, and cocktails" } });
+  const typeSpecial   = await prisma.productType.create({ data: { name: "Special",    description: "Daily chef specials" } });
 
-  const beverageType = await prisma.productType.create({
-    data: { name: "Beverage", description: "Drink items" },
+  // ── Products (22 total) ───────────────────────────────────────────────────
+  // Burgers (4)
+  const pClassicBurger = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Classic Burger",      basePrice: 8.99,  typeId: typeBurger.typeId } } },
+    include: { product: true },
   });
-
-  // ── Products ──────────────────────────────────────────────────────────────
-  const burgerItem = await prisma.orderableItem.create({
-    data: {
-      itemType: "product",
-      product: { create: { name: "Cheeseburger", basePrice: 8.99, typeId: foodType.typeId } },
-    },
+  const pCheeseBurger = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Cheeseburger",        basePrice: 9.99,  typeId: typeBurger.typeId } } },
+    include: { product: true },
+  });
+  const pBaconBurger = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Bacon Burger",        basePrice: 11.49, typeId: typeBurger.typeId } } },
+    include: { product: true },
+  });
+  const pMushroomBurger = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Mushroom Swiss Burger", basePrice: 12.99, typeId: typeBurger.typeId } } },
     include: { product: true },
   });
 
-  const friesItem = await prisma.orderableItem.create({
-    data: {
-      itemType: "product",
-      product: { create: { name: "French Fries", basePrice: 3.99, typeId: foodType.typeId } },
-    },
+  // Sandwiches (3)
+  const pBLT = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "BLT Sandwich",        basePrice: 8.49,  typeId: typeSandwich.typeId } } },
+    include: { product: true },
+  });
+  const pClub = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Club Sandwich",       basePrice: 10.49, typeId: typeSandwich.typeId } } },
+    include: { product: true },
+  });
+  const pGrilledCheese = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Grilled Cheese",      basePrice: 6.99,  typeId: typeSandwich.typeId } } },
     include: { product: true },
   });
 
-  const sodaItem = await prisma.orderableItem.create({
-    data: {
-      itemType: "product",
-      product: { create: { name: "Soda", basePrice: 1.99, typeId: beverageType.typeId } },
-    },
+  // Salads (2)
+  const pCaesar = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Caesar Salad",        basePrice: 9.99,  typeId: typeSalad.typeId } } },
+    include: { product: true },
+  });
+  const pGarden = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Garden Salad",        basePrice: 7.99,  typeId: typeSalad.typeId } } },
     include: { product: true },
   });
 
-  const onionRingsItem = await prisma.orderableItem.create({
-    data: {
-      itemType: "product",
-      product: { create: { name: "Onion Rings", basePrice: 4.49, typeId: foodType.typeId } },
-    },
+  // Sides (3)
+  const pFries = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "French Fries",        basePrice: 3.99,  typeId: typeSide.typeId } } },
+    include: { product: true },
+  });
+  const pOnionRings = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Onion Rings",         basePrice: 4.49,  typeId: typeSide.typeId } } },
+    include: { product: true },
+  });
+  const pColeslaw = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Coleslaw",            basePrice: 2.99,  typeId: typeSide.typeId } } },
     include: { product: true },
   });
 
-  const milkshakeItem = await prisma.orderableItem.create({
-    data: {
-      itemType: "product",
-      product: { create: { name: "Milkshake", basePrice: 4.99, typeId: beverageType.typeId } },
-    },
+  // Beverages (3)
+  const pSoda = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Fountain Soda",       basePrice: 1.99,  typeId: typeBeverage.typeId } } },
+    include: { product: true },
+  });
+  const pMilkshake = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Milkshake",           basePrice: 4.99,  typeId: typeBeverage.typeId } } },
+    include: { product: true },
+  });
+  const pLemonade = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Fresh Lemonade",      basePrice: 2.99,  typeId: typeBeverage.typeId } } },
     include: { product: true },
   });
 
-  const burger = burgerItem.product!;
-  const fries = friesItem.product!;
-  const soda = sodaItem.product!;
-  const onionRings = onionRingsItem.product!;
-  const milkshake = milkshakeItem.product!;
+  // Desserts (2)
+  const pBrownie = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Chocolate Brownie",   basePrice: 3.99,  typeId: typeDessert.typeId } } },
+    include: { product: true },
+  });
+  const pApplePie = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Apple Pie Slice",     basePrice: 4.49,  typeId: typeDessert.typeId } } },
+    include: { product: true },
+  });
 
-  // ── Packages ──────────────────────────────────────────────────────────────
-  const comboItem = await prisma.orderableItem.create({
+  // Breakfast (1)
+  const pBreakfastBurrito = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Breakfast Burrito",   basePrice: 8.99,  typeId: typeBreakfast.typeId } } },
+    include: { product: true },
+  });
+
+  // Kids (1)
+  const pKidsBurger = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Kids Burger",         basePrice: 5.99,  typeId: typeKids.typeId } } },
+    include: { product: true },
+  });
+
+  // Alcohol (1)
+  const pDraftBeer = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Draft Beer (16oz)",   basePrice: 6.99,  typeId: typeAlcohol.typeId } } },
+    include: { product: true },
+  });
+
+  // Special (2)
+  const pDailySpecial = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Chef's Daily Special", basePrice: 14.99, typeId: typeSpecial.typeId } } },
+    include: { product: true },
+  });
+  const pSeasonalSalad = await prisma.orderableItem.create({
+    data: { itemType: "product", product: { create: { name: "Seasonal Salad",      basePrice: 11.99, typeId: typeSpecial.typeId } } },
+    include: { product: true },
+  });
+
+  // Helper to get the typed product record
+  const prod = (item: typeof pFries) => item.product!;
+
+  // ── Packages (5) ─────────────────────────────────────────────────────────
+  await prisma.orderableItem.create({
     data: {
       itemType: "package",
       package: {
         create: {
-          name: "Combo Meal",
+          name: "Classic Combo",
           bundlePrice: 12.99,
           packageProducts: {
             create: [
-              { productId: burger.productId },
-              { productId: fries.productId },
-              { productId: soda.productId },
+              { productId: prod(pClassicBurger).productId },
+              { productId: prod(pFries).productId },
+              { productId: prod(pSoda).productId },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  await prisma.orderableItem.create({
+    data: {
+      itemType: "package",
+      package: {
+        create: {
+          name: "Cheese Combo",
+          bundlePrice: 13.99,
+          packageProducts: {
+            create: [
+              { productId: prod(pCheeseBurger).productId },
+              { productId: prod(pFries).productId },
+              { productId: prod(pSoda).productId },
             ],
           },
         },
@@ -151,8 +238,8 @@ async function main() {
           bundlePrice: 8.49,
           packageProducts: {
             create: [
-              { productId: onionRings.productId },
-              { productId: milkshake.productId },
+              { productId: prod(pOnionRings).productId },
+              { productId: prod(pMilkshake).productId },
             ],
           },
         },
@@ -160,226 +247,297 @@ async function main() {
     },
   });
 
-  // ── Inventory ─────────────────────────────────────────────────────────────
-  for (const [productId, qty] of [
-    [burger.productId, 50],
-    [fries.productId, 100],
-    [soda.productId, 80],
-    [onionRings.productId, 60],
-    [milkshake.productId, 40],
-  ] as [number, number][]) {
+  await prisma.orderableItem.create({
+    data: {
+      itemType: "package",
+      package: {
+        create: {
+          name: "Kids Meal",
+          bundlePrice: 7.99,
+          packageProducts: {
+            create: [
+              { productId: prod(pKidsBurger).productId },
+              { productId: prod(pFries).productId },
+              { productId: prod(pSoda).productId },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  await prisma.orderableItem.create({
+    data: {
+      itemType: "package",
+      package: {
+        create: {
+          name: "Bacon Deluxe Combo",
+          bundlePrice: 15.99,
+          packageProducts: {
+            create: [
+              { productId: prod(pBaconBurger).productId },
+              { productId: prod(pOnionRings).productId },
+              { productId: prod(pMilkshake).productId },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  // ── Inventory (initial stock for all products) ─────────────────────────────
+  const stockLevels: [number, number][] = [
+    [prod(pClassicBurger).productId,    40],
+    [prod(pCheeseBurger).productId,     40],
+    [prod(pBaconBurger).productId,      30],
+    [prod(pMushroomBurger).productId,   25],
+    [prod(pBLT).productId,              35],
+    [prod(pClub).productId,             30],
+    [prod(pGrilledCheese).productId,    40],
+    [prod(pCaesar).productId,           25],
+    [prod(pGarden).productId,           25],
+    [prod(pFries).productId,           100],
+    [prod(pOnionRings).productId,       60],
+    [prod(pColeslaw).productId,         50],
+    [prod(pSoda).productId,            120],
+    [prod(pMilkshake).productId,        40],
+    [prod(pLemonade).productId,         50],
+    [prod(pBrownie).productId,          30],
+    [prod(pApplePie).productId,         20],
+    [prod(pBreakfastBurrito).productId, 20],
+    [prod(pKidsBurger).productId,       30],
+    [prod(pDraftBeer).productId,        80],
+    [prod(pDailySpecial).productId,     15],
+    [prod(pSeasonalSalad).productId,    15],
+  ];
+
+  for (const [productId, qty] of stockLevels) {
     await prisma.inventoryTransaction.create({
       data: { productId, quantityChange: qty, reason: "initial_stock" },
     });
   }
 
-  // ── Roles ─────────────────────────────────────────────────────────────────
-  const managerRole = await prisma.role.create({
-    data: { name: "Manager", description: "Oversees daily operations" },
-  });
+  // ── Roles (10) ────────────────────────────────────────────────────────────
+  const roleManager    = await prisma.role.create({ data: { name: "manager",    description: "Oversees daily operations and staff" } });
+  const roleGM         = await prisma.role.create({ data: { name: "gm",         description: "General manager — full authority" } });
+  const roleServer     = await prisma.role.create({ data: { name: "server",     description: "Takes orders and serves customers" } });
+  const roleCashier    = await prisma.role.create({ data: { name: "cashier",    description: "Handles customer orders and payments" } });
+  const roleCook       = await prisma.role.create({ data: { name: "cook",       description: "Prepares hot food items" } });
+  const rolePrep       = await prisma.role.create({ data: { name: "prep",       description: "Handles food prep before service" } });
+  const roleExpo       = await prisma.role.create({ data: { name: "expo",       description: "Expedites food from kitchen to floor" } });
+  const roleHost       = await prisma.role.create({ data: { name: "host",       description: "Greets and seats customers" } });
+  const roleDishwasher = await prisma.role.create({ data: { name: "dishwasher", description: "Cleans dishes and kitchen equipment" } });
+  const roleRunner     = await prisma.role.create({ data: { name: "runner",     description: "Delivers food from kitchen to tables" } });
 
-  const cashierRole = await prisma.role.create({
-    data: { name: "Cashier", description: "Handles customer orders and payments" },
-  });
-
-  const cookRole = await prisma.role.create({
-    data: { name: "Cook", description: "Prepares food orders" },
-  });
-
-  // ── Employees ─────────────────────────────────────────────────────────────
+  // ── Employees (10) ────────────────────────────────────────────────────────
   const alice = await prisma.employee.create({
     data: {
-      firstName: "Alice",
-      lastName: "Johnson",
-      dateOfBirth: new Date("1990-03-15"),
+      firstName: "Alice", lastName: "Johnson",
+      dateOfBirth: new Date("1985-03-15"),
       storeNumber: restaurant.storeNumber,
-      salary: 55000,
-      hireDate: new Date("2022-01-10"),
-      addressId: aliceAddress.addressId,
-      employeeRoles: {
-        create: [{ roleId: managerRole.roleId }, { roleId: cashierRole.roleId }],
-      },
+      salary: 72000, hireDate: new Date("2020-01-10"),
+      addressId: addr2.addressId,
+      employeeRoles: { create: [{ roleId: roleGM.roleId }] },
     },
   });
 
   const bob = await prisma.employee.create({
     data: {
-      firstName: "Bob",
-      lastName: "Martinez",
-      dateOfBirth: new Date("1995-07-22"),
+      firstName: "Bob", lastName: "Martinez",
+      dateOfBirth: new Date("1990-07-22"),
       storeNumber: restaurant.storeNumber,
-      salary: 38000,
-      hireDate: new Date("2023-03-05"),
-      addressId: bobAddress.addressId,
-      employeeRoles: {
-        create: [{ roleId: cookRole.roleId }],
-      },
+      salary: 58000, hireDate: new Date("2021-03-05"),
+      addressId: addr3.addressId,
+      employeeRoles: { create: [{ roleId: roleManager.roleId }] },
     },
   });
 
   const carol = await prisma.employee.create({
     data: {
-      firstName: "Carol",
-      lastName: "Lee",
-      dateOfBirth: new Date("1998-11-30"),
+      firstName: "Carol", lastName: "Lee",
+      dateOfBirth: new Date("1995-11-30"),
       storeNumber: restaurant.storeNumber,
-      salary: 36000,
-      hireDate: new Date("2023-06-20"),
-      addressId: carolAddress.addressId,
-      employeeRoles: {
-        create: [{ roleId: cashierRole.roleId }],
-      },
+      salary: 42000, hireDate: new Date("2022-06-20"),
+      addressId: addr4.addressId,
+      employeeRoles: { create: [{ roleId: roleServer.roleId }, { roleId: roleCashier.roleId }] },
+    },
+  });
+
+  const david = await prisma.employee.create({
+    data: {
+      firstName: "David", lastName: "Kim",
+      dateOfBirth: new Date("1992-04-08"),
+      storeNumber: restaurant.storeNumber,
+      salary: 40000, hireDate: new Date("2022-09-15"),
+      addressId: addr5.addressId,
+      employeeRoles: { create: [{ roleId: roleServer.roleId }] },
+    },
+  });
+
+  const emma = await prisma.employee.create({
+    data: {
+      firstName: "Emma", lastName: "Patel",
+      dateOfBirth: new Date("1998-02-14"),
+      storeNumber: restaurant.storeNumber,
+      salary: 38000, hireDate: new Date("2023-01-03"),
+      addressId: addr6.addressId,
+      employeeRoles: { create: [{ roleId: roleCashier.roleId }] },
+    },
+  });
+
+  const frank = await prisma.employee.create({
+    data: {
+      firstName: "Frank", lastName: "Torres",
+      dateOfBirth: new Date("1988-09-19"),
+      storeNumber: restaurant.storeNumber,
+      salary: 44000, hireDate: new Date("2021-11-01"),
+      addressId: addr7.addressId,
+      employeeRoles: { create: [{ roleId: roleCook.roleId }] },
+    },
+  });
+
+  const grace = await prisma.employee.create({
+    data: {
+      firstName: "Grace", lastName: "Nguyen",
+      dateOfBirth: new Date("1996-06-25"),
+      storeNumber: restaurant.storeNumber,
+      salary: 40000, hireDate: new Date("2022-04-18"),
+      addressId: addr8.addressId,
+      employeeRoles: { create: [{ roleId: roleCook.roleId }, { roleId: rolePrep.roleId }] },
+    },
+  });
+
+  const henry = await prisma.employee.create({
+    data: {
+      firstName: "Henry", lastName: "Davis",
+      dateOfBirth: new Date("2000-12-01"),
+      storeNumber: restaurant.storeNumber,
+      salary: 36000, hireDate: new Date("2023-05-22"),
+      addressId: addr9.addressId,
+      employeeRoles: { create: [{ roleId: roleExpo.roleId }] },
+    },
+  });
+
+  const isabel = await prisma.employee.create({
+    data: {
+      firstName: "Isabel", lastName: "Ramirez",
+      dateOfBirth: new Date("1997-08-10"),
+      storeNumber: restaurant.storeNumber,
+      salary: 36000, hireDate: new Date("2023-07-10"),
+      addressId: addr10.addressId,
+      employeeRoles: { create: [{ roleId: roleHost.roleId }] },
+    },
+  });
+
+  const james = await prisma.employee.create({
+    data: {
+      firstName: "James", lastName: "Wilson",
+      dateOfBirth: new Date("2001-03-28"),
+      storeNumber: restaurant.storeNumber,
+      salary: 34000, hireDate: new Date("2024-02-05"),
+      addressId: addr11.addressId,
+      employeeRoles: { create: [{ roleId: roleRunner.roleId }, { roleId: roleDishwasher.roleId }] },
     },
   });
 
   // ── Shifts ────────────────────────────────────────────────────────────────
-  await prisma.shift.create({
-    data: {
-      employeeId: alice.employeeId,
-      roleId: managerRole.roleId,
-      startTimestamp: new Date("2026-04-18T08:00:00"),
-      endTimestamp: new Date("2026-04-18T16:00:00"),
-      clockInTimestamp: new Date("2026-04-18T07:58:00"),
-      clockOutTimestamp: new Date("2026-04-18T16:03:00"),
-    },
-  });
+  const today = new Date("2026-04-27");
+  const mkDate = (h: number, m = 0) => new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
+  const yesterday = new Date("2026-04-26");
+  const mkYest = (h: number, m = 0) => new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), h, m);
 
   await prisma.shift.create({
     data: {
-      employeeId: bob.employeeId,
-      roleId: cookRole.roleId,
-      startTimestamp: new Date("2026-04-18T09:00:00"),
-      endTimestamp: new Date("2026-04-18T17:00:00"),
-      clockInTimestamp: new Date("2026-04-18T09:01:00"),
-      clockOutTimestamp: new Date("2026-04-18T17:05:00"),
+      employeeId: alice.employeeId, roleId: roleGM.roleId,
+      startTimestamp: mkYest(8), endTimestamp: mkYest(16),
+      clockInTimestamp: mkYest(7, 58), clockOutTimestamp: mkYest(16, 5),
     },
   });
-
   await prisma.shift.create({
     data: {
-      employeeId: carol.employeeId,
-      roleId: cashierRole.roleId,
-      startTimestamp: new Date("2026-04-18T10:00:00"),
-      endTimestamp: new Date("2026-04-18T18:00:00"),
-      clockInTimestamp: new Date("2026-04-18T10:00:00"),
+      employeeId: bob.employeeId, roleId: roleManager.roleId,
+      startTimestamp: mkDate(8), endTimestamp: mkDate(16),
+      clockInTimestamp: mkDate(8, 2),
+    },
+  });
+  await prisma.shift.create({
+    data: {
+      employeeId: carol.employeeId, roleId: roleServer.roleId,
+      startTimestamp: mkDate(10), endTimestamp: mkDate(18),
+      clockInTimestamp: mkDate(10, 0),
+    },
+  });
+  await prisma.shift.create({
+    data: {
+      employeeId: david.employeeId, roleId: roleServer.roleId,
+      startTimestamp: mkDate(11), endTimestamp: mkDate(19),
+    },
+  });
+  await prisma.shift.create({
+    data: {
+      employeeId: frank.employeeId, roleId: roleCook.roleId,
+      startTimestamp: mkDate(9), endTimestamp: mkDate(17),
+      clockInTimestamp: mkDate(9, 1),
+    },
+  });
+  await prisma.shift.create({
+    data: {
+      employeeId: grace.employeeId, roleId: roleCook.roleId,
+      startTimestamp: mkDate(9), endTimestamp: mkDate(17),
+      clockInTimestamp: mkDate(8, 58),
+    },
+  });
+  await prisma.shift.create({
+    data: {
+      employeeId: henry.employeeId, roleId: roleExpo.roleId,
+      startTimestamp: mkDate(10), endTimestamp: mkDate(18),
+      clockInTimestamp: mkDate(10, 3),
     },
   });
 
-  // ── Discounts ─────────────────────────────────────────────────────────────
-  const tenPercent = await prisma.discount.create({
-    data: { name: "10% Off", value: 10.0, type: "percent" },
-  });
+  // ── Discounts (10) ────────────────────────────────────────────────────────
+  await prisma.discount.create({ data: { name: "Employee Discount",  value: 30, type: "percent" } });
+  await prisma.discount.create({ data: { name: "Happy Hour",         value: 15, type: "percent" } });
+  await prisma.discount.create({ data: { name: "Senior Discount",    value: 10, type: "percent" } });
+  await prisma.discount.create({ data: { name: "Student Discount",   value: 10, type: "percent" } });
+  await prisma.discount.create({ data: { name: "Military Discount",  value: 15, type: "percent" } });
+  await prisma.discount.create({ data: { name: "Manager Comp",       value: 100, type: "percent" } });
+  await prisma.discount.create({ data: { name: "$5 Off",             value: 5,  type: "fixed" } });
+  await prisma.discount.create({ data: { name: "$10 Off",            value: 10, type: "fixed" } });
+  await prisma.discount.create({ data: { name: "Birthday Special",   value: 20, type: "percent" } });
+  await prisma.discount.create({ data: { name: "Loyalty Reward",     value: 5,  type: "fixed" } });
 
-  const fiveDollars = await prisma.discount.create({
-    data: { name: "$5 Off", value: 5.0, type: "fixed" },
-  });
+  // ── Demo order (one completed tab to show history) ────────────────────────
+  const fireTime = new Date("2026-04-26T12:30:00");
+  const subtotal = Number(prod(pCheeseBurger).basePrice) + Number(prod(pFries).basePrice) + Number(prod(pSoda).basePrice);
+  const tax = subtotal * 0.0875;
+  const total = subtotal + tax;
 
-  // ── Orders ────────────────────────────────────────────────────────────────
-  // Order 1: cash-paid cheeseburger + fries + soda
-  const order1Subtotal = 8.99 + 3.99 + 1.99; // 14.97
-  const order1Tax = order1Subtotal * 0.0875;
-  const order1Total = order1Subtotal + order1Tax;
-
-  const order1 = await prisma.order.create({
+  await prisma.order.create({
     data: {
       customerName: "Jane Smith",
       storeNumber: restaurant.storeNumber,
       taxPercent: 8.75,
-      tip: 2.00,
-      subtotal: order1Subtotal,
-      total: order1Total + 2.00,
+      tip: 3.00,
+      subtotal,
+      total: total + 3.00,
       preparationStatus: "completed",
       paymentStatus: "paid",
       employeeId: carol.employeeId,
       orderItems: {
         create: [
-          { itemId: burgerItem.itemId, quantity: 1, priceAtPurchase: 8.99 },
-          { itemId: friesItem.itemId,  quantity: 1, priceAtPurchase: 3.99 },
-          { itemId: sodaItem.itemId,   quantity: 1, priceAtPurchase: 1.99 },
+          { itemId: pCheeseBurger.itemId, quantity: 1, priceAtPurchase: prod(pCheeseBurger).basePrice, kitchenStatus: "delivered", firedAt: fireTime },
+          { itemId: pFries.itemId,        quantity: 1, priceAtPurchase: prod(pFries).basePrice,        kitchenStatus: "delivered", firedAt: fireTime },
+          { itemId: pSoda.itemId,         quantity: 1, priceAtPurchase: prod(pSoda).basePrice,         kitchenStatus: "delivered", firedAt: fireTime },
         ],
       },
     },
   });
 
-  // Order 2: onion rings x2 with a $5 discount, partially paid
-  const order2Subtotal = 4.49 * 2; // 8.98
-  const order2Tax = order2Subtotal * 0.0875;
-  const order2Total = order2Subtotal + order2Tax - 5.0;
-
-  const order2 = await prisma.order.create({
-    data: {
-      customerName: "Tom Baker",
-      storeNumber: restaurant.storeNumber,
-      taxPercent: 8.75,
-      subtotal: order2Subtotal,
-      total: order2Total,
-      preparationStatus: "in_progress",
-      paymentStatus: "unpaid",
-      employeeId: carol.employeeId,
-      orderItems: {
-        create: [
-          { itemId: onionRingsItem.itemId, quantity: 2, priceAtPurchase: 4.49 },
-        ],
-      },
-      orderDiscounts: {
-        create: [{ discountId: fiveDollars.discountId }],
-      },
-    },
-  });
-
-  // Order 3: pending, no payment yet — one Combo Meal with 10% discount
-  const order3Subtotal = 12.99;
-  const order3PreTaxTotal = order3Subtotal + order3Subtotal * 0.0875;
-  const order3DiscountAmount = order3Subtotal * (10 / 100);
-  const order3Total = order3PreTaxTotal - order3DiscountAmount;
-
-  const order3 = await prisma.order.create({
-    data: {
-      customerName: "Sam Rivera",
-      storeNumber: restaurant.storeNumber,
-      taxPercent: 8.75,
-      subtotal: order3Subtotal,
-      total: order3Total,
-      preparationStatus: "pending",
-      paymentStatus: "unpaid",
-      orderItems: {
-        create: [
-          { itemId: comboItem.itemId, quantity: 1, priceAtPurchase: 12.99 },
-        ],
-      },
-      orderDiscounts: {
-        create: [{ discountId: tenPercent.discountId }],
-      },
-    },
-  });
-
-  // ── Payments ──────────────────────────────────────────────────────────────
-  // Cash payment covering order 1 in full
-  await prisma.payment.create({
-    data: { orderId: order1.orderId, type: "cash", amount: order1Total + 2.00 },
-  });
-
-  // Partial card payment on order 2
-  const card = await prisma.card.create({
-    data: {
-      cardholderName: "Tom Baker",
-      token: "tok_test_4242424242424242",
-      lastFour: "4242",
-      brand: "Visa",
-      expirationMonth: 12,
-      expirationYear: 2027,
-    },
-  });
-
-  const cardPayment = await prisma.payment.create({
-    data: { orderId: order2.orderId, type: "card", amount: 3.00 },
-  });
-
-  await prisma.electronicPayment.create({
-    data: { cardId: card.cardId, paymentId: cardPayment.paymentId },
-  });
-
-  console.log("Seeding complete!");
+  console.log("✓ Seeding complete");
+  console.log(`  Addresses: 13 | Product types: 10 | Products: 22 | Packages: 5`);
+  console.log(`  Roles: 10 | Employees: 10 | Discounts: 10 | Shifts: 7`);
+  console.log(`  Inventory transactions: ${stockLevels.length} (initial stock)`);
 }
 
 main()
