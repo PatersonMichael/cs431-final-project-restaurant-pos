@@ -381,6 +381,12 @@ export default function Closeout() {
         </span>
       </div>
 
+      {tab.staged.length > 0 && (
+        <div className="mx-4 mt-3 px-3 py-2 border-l-4 border-warning bg-warning-bg rounded text-sm text-primary flex-shrink-0">
+          {tab.staged.length} unfired item{tab.staged.length !== 1 ? 's' : ''} will be sent to the kitchen when you close this tab.
+        </div>
+      )}
+
       {error && (
         <div className="mx-4 mt-3 px-3 py-2 border-l-4 border-danger bg-danger-bg rounded text-sm text-primary flex-shrink-0">
           {error}

@@ -7,9 +7,10 @@ import ServerLayout    from './layouts/ServerLayout'
 import ExpediterLayout from './layouts/ExpediterLayout'
 import ManagerLayout   from './layouts/ManagerLayout'
 
-import TabDetail      from './routes/ServerConsole/TabDetail'
-import Closeout       from './routes/ServerConsole/Closeout'
-import ExpediterBoard from './routes/Expediter/ExpediterBoard'
+import TabDetail        from './routes/ServerConsole/TabDetail'
+import Closeout         from './routes/ServerConsole/Closeout'
+import ExpediterBoard   from './routes/Expediter/ExpediterBoard'
+import ExpediterArchive from './routes/Expediter/ExpediterArchive'
 
 // ─── Placeholder route components (Phase 6) ──────────────────────────────────
 
@@ -84,7 +85,8 @@ export default function App() {
           </RequireRole>
         }
       >
-        <Route index element={<ExpediterBoard />} />
+        <Route index   element={<ExpediterBoard />} />
+        <Route path="archive" element={<ExpediterArchive />} />
       </Route>
 
       {/* Manager console (FR-AUTH-3) */}

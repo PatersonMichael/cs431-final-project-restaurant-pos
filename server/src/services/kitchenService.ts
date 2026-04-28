@@ -19,17 +19,21 @@ function itemName(oi: {
   return oi.product?.name ?? oi.package?.name ?? "Unknown";
 }
 
-export async function getActiveTickets(): Promise<TicketResponse[]> {
-  const items = await prisma.orderItem.findMany({
-    where: { kitchenStatus: { in: [...ACTIVE_STATUSES] } },
-    include: {
-      ...itemInclude,
-      order: { select: { customerName: true, orderId: true } },
-    },
-    orderBy: { firedAt: "asc" },
-  });
-
-  // Group by (orderId, firedAt)
+function groupIntoTickets(
+  items: Array<{
+    orderItemId: number;
+    orderId: number;
+    quantity: number;
+    kitchenStatus: string;
+    firedAt: Date | null;
+    order: { orderId: number; customerName: string | null };
+    orderableItem: {
+      itemType: string;
+      product: { name: string } | null;
+      package: { name: string } | null;
+    };
+  }>
+): TicketResponse[] {
   const ticketMap = new Map<string, TicketResponse>();
   for (const item of items) {
     if (item.firedAt === null) continue;
@@ -52,8 +56,43 @@ export async function getActiveTickets(): Promise<TicketResponse[]> {
       kitchen_status: item.kitchenStatus,
     });
   }
-
   return Array.from(ticketMap.values());
+}
+
+export async function getActiveTickets(storeNumber?: number): Promise<TicketResponse[]> {
+  const items = await prisma.orderItem.findMany({
+    where: {
+      kitchenStatus: { in: [...ACTIVE_STATUSES] },
+      ...(storeNumber !== undefined && { order: { storeNumber } }),
+    },
+    include: {
+      ...itemInclude,
+      order: { select: { customerName: true, orderId: true } },
+    },
+    orderBy: { firedAt: "asc" },
+  });
+  return groupIntoTickets(items);
+}
+
+export async function getArchiveTickets(storeNumber?: number): Promise<TicketResponse[]> {
+  const startOfDay = new Date();
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const endOfDay = new Date();
+  endOfDay.setUTCHours(23, 59, 59, 999);
+
+  const items = await prisma.orderItem.findMany({
+    where: {
+      kitchenStatus: "ready",
+      firedAt: { gte: startOfDay, lte: endOfDay },
+      ...(storeNumber !== undefined && { order: { storeNumber } }),
+    },
+    include: {
+      ...itemInclude,
+      order: { select: { customerName: true, orderId: true } },
+    },
+    orderBy: { firedAt: "desc" },
+  });
+  return groupIntoTickets(items);
 }
 
 export async function updateItemStatus(
@@ -78,6 +117,14 @@ export async function bumpTicket(orderId: number, firedAt: Date): Promise<{ upda
       kitchenStatus: { in: ["fired", "preparing"] },
     },
     data: { kitchenStatus: "ready" },
+  });
+  return { updated: result.count };
+}
+
+export async function reopenTicket(orderId: number, firedAt: Date): Promise<{ updated: number }> {
+  const result = await prisma.orderItem.updateMany({
+    where: { orderId, firedAt, kitchenStatus: "ready" },
+    data: { kitchenStatus: "preparing" },
   });
   return { updated: result.count };
 }

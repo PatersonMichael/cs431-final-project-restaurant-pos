@@ -321,13 +321,59 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 
 ### What shipped
 
-**`client/src/routes/Expediter/ExpediterBoard.tsx`** (FR-EXP-1 – FR-EXP-5)
-- Polls `GET /api/kitchen/tickets?store_number=` every 5 s via `usePolling` (FR-EXP-4)
-- Tickets sorted oldest-fired first (FR-EXP-3)
-- `TicketCard` sub-component: left-border color band (green/yellow/red via `getTimeBand`), customer name, live elapsed time via `useElapsed` (FR-EXP-2)
-- Per-item status button cycles `fired → preparing → ready` via `PATCH /api/kitchen/items/:id` (FR-EXP-2)
-- Bump button sends entire ticket to ready via `PATCH /api/kitchen/tickets/:order_id/:fired_at` (FR-EXP-2)
-- Linger logic: tickets removed from API are tracked in `lingeringRef`; shown dimmed (`opacity-30 pointer-events-none`) for 60 s then pruned on next poll (FR-EXP-5)
-- Empty state: "All caught up" when no live or lingering tickets
-- `App.tsx`: `/expediter` index route replaced with `<ExpediterBoard />`
-- `tsc --noEmit` passes clean on both client and server packages
+**Board (`ExpediterBoard.tsx`)** (FR-EXP-1 – FR-EXP-4)
+- Ticket-level view: no per-item status controls; tickets are "in progress" as soon as they appear
+- `TicketCard`: order #, customer name, item list, live elapsed time, left-border color band (green/yellow/red)
+- **Double-tap / double-click to bump** — optimistic removal immediately, no linger
+- `usePolling` at 5 s (FR-EXP-4); oldest-fired first (FR-EXP-3)
+
+**Archive (`ExpediterArchive.tsx`)**
+- `GET /api/kitchen/archive?store_number=` — today's `ready` tickets, polled every 10 s
+- Reopen: `POST /api/kitchen/tickets/:order_id/:fired_at/reopen` sets items back to `preparing`
+
+**Backend additions**
+- `getArchiveTickets(storeNumber?)` — items with `kitchenStatus = 'ready'` + today's UTC date range
+- `reopenTicket(orderId, firedAt)` — `updateMany` back to `preparing`
+- `GET /api/kitchen/tickets` now filters by `store_number`
+- `GET /api/kitchen/archive` and `POST .../reopen` new routes
+
+**Layout / routing**
+- `ExpediterLayout.tsx` — Board / Archive tab nav in header
+- `App.tsx` — `/expediter/archive` route added
+
+**`tsc --noEmit` passes clean** on both client and server packages.
+
+**Post-checkpoint fix (also Phase 5)**
+- `closeTab` now auto-fires any staged items atomically inside the close transaction — inventory transactions written, `firedAt` stamped — so items are never silently dropped from the kitchen when a tab is closed without an explicit Fire
+- `Closeout.tsx` shows a yellow warning banner when staged items are present ("X unfired items will be sent to the kitchen on close")
+
+---
+
+## Phase 6 — Manager Console
+
+**Status:** Not started — awaiting checkpoint
+
+### Scope
+
+| FR-ID | Surface | Description |
+|---|---|---|
+| FR-MGR-1 | Orders | Filterable list: date range, status, employee, store. Defaults to today. |
+| FR-MGR-2 | Orders | Drilldown to order detail: items, payments, discounts, timestamps, server name. |
+| FR-MGR-3 | Orders | Read-only in v1. |
+| FR-INV-1 | Inventory | List all products with computed on-hand (SQL SUM of INVENTORY_TRANSACTION). |
+| FR-INV-2 | Inventory | Filter by PRODUCT_TYPE; highlight on-hand ≤ 0. |
+| FR-INV-3 | Inventory | Adjust action: signed qty, reason dropdown, optional note → new INVENTORY_TRANSACTION. |
+| FR-INV-4 | Inventory | Per-product history: last N transactions. |
+| FR-SCH-1 | Schedule | Week grid: rows = employees, columns = Mon–Sun. Cells show shifts. |
+| FR-SCH-2 | Schedule | Click empty cell → create shift form (employee + date preselected, pick role + times). |
+| FR-SCH-3 | Schedule | Click shift → edit or cancel (blocked if clock_in_timestamp is set). |
+| FR-SCH-4 | Schedule | Validation: end > start; employee must hold the chosen role. |
+
+### Notes
+- All backend routes exist from Phase 2: `GET /api/orders`, `GET /api/orders/:id`, `GET /api/inventory`, `GET /api/inventory/:id/history`, `POST /api/inventory/:id/adjust`, `GET/POST/PATCH/DELETE /api/schedule`
+- Frontend stubs: `/manager/orders`, `/manager/inventory`, `/manager/schedule` render `<ComingSoon>` — replace with real components
+- Need a new route `/manager/orders/:id` for FR-MGR-2 (OrderDetail) — not yet wired in App.tsx
+- `ManagerLayout.tsx` already has the left-nav links for Orders / Inventory / Schedule
+- Client API files `orders.ts`, `inventory.ts`, `schedule.ts` already exist with typed fetch wrappers
+- `GET /api/employees?store_number=` needed for the Schedule employee rows (already exists)
+- `GET /api/employees/:id/roles` needed for the shift-create role picker validation (already exists)

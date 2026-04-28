@@ -374,6 +374,49 @@ export async function closeTab(orderId: number): Promise<TabDetail> {
 
     if (order.preparationStatus !== "open") throw new Error("Tab is already closed");
 
+    // Auto-fire any staged items so the kitchen always receives a ticket
+    const stagedItems = await tx.orderItem.findMany({
+      where: { orderId, kitchenStatus: "staged" },
+      include: {
+        orderableItem: {
+          include: {
+            product: true,
+            package: { include: { packageProducts: true } },
+          },
+        },
+      },
+    });
+
+    if (stagedItems.length > 0) {
+      const firedAt = new Date();
+      await tx.orderItem.updateMany({
+        where: { orderId, kitchenStatus: "staged" },
+        data: { kitchenStatus: "fired", firedAt },
+      });
+      for (const item of stagedItems) {
+        const { orderableItem } = item;
+        if (orderableItem.itemType === "product" && orderableItem.product !== null) {
+          await tx.inventoryTransaction.create({
+            data: {
+              productId: orderableItem.product.productId,
+              quantityChange: -item.quantity,
+              reason: "sale",
+            },
+          });
+        } else if (orderableItem.itemType === "package" && orderableItem.package !== null) {
+          for (const pp of orderableItem.package.packageProducts) {
+            await tx.inventoryTransaction.create({
+              data: {
+                productId: pp.productId,
+                quantityChange: -item.quantity,
+                reason: "sale",
+              },
+            });
+          }
+        }
+      }
+    }
+
     const totalPaid = order.payments.reduce(
       (sum, p) => sum.plus(p.amount),
       new Prisma.Decimal(0)
