@@ -149,10 +149,11 @@ export default function Closeout() {
       setTab(data)
       if (data.tip) setTipInput(data.tip)
       setError(null)
-      // Pre-fill with remaining balance
+      // Cash starts at 0 so denomination buttons reflect the bill tendered, not balance + bill.
+      // Electronic pre-fills to remaining so the charge field is ready to submit.
       const paid      = sumPayments(data.payments)
       const remaining = Math.max(0, parseFloat(data.total) - paid)
-      setCentAmount(Math.round(remaining * 100))
+      setCentAmount(payType === 'electronic' ? Math.round(remaining * 100) : 0)
     } catch {
       setError('Could not load tab.')
     } finally {
@@ -169,12 +170,14 @@ export default function Closeout() {
     void init()
   }, [id, fetchTab])
 
-  // Reset centAmount to remaining whenever payType changes
+  // Reset centAmount when payType changes:
+  // electronic → pre-fill to remaining (ready to charge exact balance)
+  // cash → reset to 0 (user builds up tendered amount via denominations)
   useEffect(() => {
     if (!tab) return
     const paid      = sumPayments(tab.payments)
     const remaining = Math.max(0, parseFloat(tab.total) - paid)
-    setCentAmount(Math.round(remaining * 100))
+    setCentAmount(payType === 'electronic' ? Math.round(remaining * 100) : 0)
     setKeypadOpen(false)
     setPayError(null)
   }, [payType]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -202,7 +205,7 @@ export default function Closeout() {
       setPendingChange(0)
       const newPaid      = sumPayments(updated.payments)
       const newRemaining = Math.max(0, parseFloat(updated.total) - newPaid)
-      setCentAmount(Math.round(newRemaining * 100))
+      setCentAmount(payType === 'electronic' ? Math.round(newRemaining * 100) : 0)
     } catch {
       setError('Could not apply discount.')
     } finally {
@@ -260,10 +263,10 @@ export default function Closeout() {
       setTab(updated)
       setCardForm(EMPTY_CARD)
       setKeypadOpen(false)
-      // Pre-fill next payment with new remaining
       const newPaid      = sumPayments(updated.payments)
       const newRemaining = Math.max(0, parseFloat(updated.total) - newPaid)
-      setCentAmount(Math.round(newRemaining * 100))
+      // Cash resets to 0; electronic pre-fills to remaining
+      setCentAmount(payType === 'electronic' ? Math.round(newRemaining * 100) : 0)
     } catch {
       setPayError('Could not add payment. Try again.')
     } finally {
@@ -280,7 +283,7 @@ export default function Closeout() {
       setPendingChange(0)
       const newPaid      = sumPayments(updated.payments)
       const newRemaining = Math.max(0, parseFloat(updated.total) - newPaid)
-      setCentAmount(Math.round(newRemaining * 100))
+      setCentAmount(payType === 'electronic' ? Math.round(newRemaining * 100) : 0)
     } catch {
       setError('Could not remove payment.')
     } finally {
@@ -297,7 +300,7 @@ export default function Closeout() {
       setPendingChange(0)
       const newPaid      = sumPayments(updated.payments)
       const newRemaining = Math.max(0, parseFloat(updated.total) - newPaid)
-      setCentAmount(Math.round(newRemaining * 100))
+      setCentAmount(payType === 'electronic' ? Math.round(newRemaining * 100) : 0)
     } catch {
       setError('Could not remove discount.')
     } finally {
@@ -607,7 +610,7 @@ export default function Closeout() {
             {/* Cash denomination buttons */}
             {payType === 'cash' && (
               <div className="space-y-2">
-                <div className="text-xs text-muted">Quick amount</div>
+                <div className="text-xs text-muted">Tendered amount</div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {/* Exact */}
                   <button
