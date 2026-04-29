@@ -377,3 +377,56 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 **App.tsx** — ComingSoon stubs replaced; `/manager/orders/:orderId` route added
 
 **`tsc --noEmit` passes clean** on both client and server packages.
+
+---
+
+## Post-Phase 6 Fixes & Features
+
+**Date:** 2026-04-29
+
+### Bug fixes (from checkpoint testing)
+
+- **Orders — payment status visible**: Added `payment_status` badge column to `OrdersList.tsx` (`unpaid` → warning, `paid` → success)
+- **Orders — filter persistence**: Filters (`from`, `to`, `status`, `employee_id`) now live in URL query params via `useSearchParams`. Back-navigating from order detail restores filters exactly.
+- **Inventory — manual disable**: Added `PATCH /api/inventory/:id/availability` + Enable/Disable toggle button per row — allows marking items unavailable regardless of stock level.
+- **Schedule — role selection broken**: `GET /api/employees/:id/roles` was returning raw Prisma `{ roleId }` (camelCase) instead of `{ role_id }`. The select `value` was always `undefined`, so selection had no visible effect and `NaN` was sent to the backend. Fixed route mapping.
+
+### New features (requested post-checkpoint)
+
+**Inventory auto-disable on zero stock**
+- `tabService.fireItems` now runs SQL SUM for each decremented product after writing its `INVENTORY_TRANSACTION`. If `on_hand ≤ 0` and the item is not infinite, `isAvailable` is set to `false` inside the same transaction.
+- `inventoryService.adjustInventory` already had this check; now also skips infinite items.
+- `addItem` already validates `isAvailable` — no change needed there.
+
+**Infinite availability flag**
+- Migration `20260429015133`: added `isInfinite BOOLEAN DEFAULT FALSE` to `orderable_item`.
+- `PATCH /api/inventory/:id/infinite` toggles the flag.
+- `getInventory` and `getProductHistory` return `is_infinite` in their DTOs.
+- Inventory table shows `∞` instead of a number for infinite items; danger highlight suppressed; `∞ Infinite` toggle button per row.
+- Auto-disable skips infinite items in both `adjustInventory` and `fireItems`.
+
+**Schedule — shift overlap validation (FR-SCH-4 extension)**
+- `createShift` and `updateShift` now reject if any existing shift for the employee overlaps `[start, end)`. Error message includes the conflicting shift's time range. `updateShift` excludes the shift being edited from the query so saving without changes never self-conflicts.
+
+---
+
+## Phase 7 — Polish & Demo Prep
+
+**Status:** Not started — awaiting checkpoint
+
+### Scope (PRD §16)
+
+| Area | Work |
+|---|---|
+| Error states | User-visible error messages for all failure paths (network, 4xx, 5xx) — no raw stack traces (NFR-7) |
+| Empty states | Meaningful zero-data messages on all list views |
+| Loading states | Loading indicators / skeletons on initial fetches |
+| Mobile viewport | Verify all three surfaces work at 375 px wide; fix any critical layout breaks |
+| README | Accurate top-level README: prerequisites, env setup, seed, dev server commands |
+| Demo prep | Verify full golden path end-to-end: login → open tab → order → fire → expediter → close out → manager review |
+
+### Notes
+- NFR-7: no raw API errors or stack traces surfaced to the user — wrap all API calls in try/catch with user-facing messages (most routes already do this; audit for gaps)
+- Mobile: `ServerLayout` has a hamburger toggle; `ExpediterBoard` and Manager views may need overflow/scroll attention at narrow widths
+- README currently exists but may be stale — regenerate from actual setup steps
+- Demo path should touch all three role surfaces and exercise at least one inventory auto-disable
