@@ -257,7 +257,8 @@ export async function fireItems(orderId: number): Promise<TabDetail> {
       data: { kitchenStatus: "fired", firedAt },
     });
 
-    // Write inventory transactions for each fired item (NFR — inventory decrement on fire)
+    // Write inventory transactions for each fired item and collect affected product IDs
+    const affectedProductIds = new Set<number>();
     for (const item of stagedItems) {
       const { orderableItem } = item;
       if (orderableItem.itemType === "product" && orderableItem.product !== null) {
@@ -268,6 +269,7 @@ export async function fireItems(orderId: number): Promise<TabDetail> {
             reason: "sale",
           },
         });
+        affectedProductIds.add(orderableItem.product.productId);
       } else if (orderableItem.itemType === "package" && orderableItem.package !== null) {
         for (const pp of orderableItem.package.packageProducts) {
           await tx.inventoryTransaction.create({
@@ -277,7 +279,27 @@ export async function fireItems(orderId: number): Promise<TabDetail> {
               reason: "sale",
             },
           });
+          affectedProductIds.add(pp.productId);
         }
+      }
+    }
+
+    // Auto-disable any non-infinite products whose on_hand just hit zero
+    for (const productId of affectedProductIds) {
+      const oi = await tx.orderableItem.findUnique({ where: { itemId: productId } });
+      if (oi === null || oi.isInfinite) continue;
+
+      const sumRows = await tx.$queryRaw<Array<{ on_hand: string | null }>>`
+        SELECT SUM(quantityChange) AS on_hand
+        FROM inventory_transaction
+        WHERE productId = ${productId}
+      `;
+      const on_hand = sumRows[0]?.on_hand !== null ? Number(sumRows[0]?.on_hand ?? 0) : 0;
+      if (on_hand <= 0) {
+        await tx.orderableItem.update({
+          where: { itemId: productId },
+          data: { isAvailable: false },
+        });
       }
     }
 

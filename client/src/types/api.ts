@@ -179,6 +179,7 @@ export interface InventoryRow {
   product_type_id: number
   product_type_name: string
   is_available: boolean
+  is_infinite: boolean
   on_hand: number
 }
 
@@ -250,6 +251,7 @@ export interface InventoryHistoryResponse {
   product_id: number
   name: string
   on_hand: number
+  is_infinite: boolean
   transactions: {
     transaction_id: number
     quantity_change: number

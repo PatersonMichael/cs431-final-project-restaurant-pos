@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-import { getInventory, getInventoryHistory, adjustInventory, setAvailability } from '../../api/inventory'
+import { getInventory, getInventoryHistory, adjustInventory, setAvailability, setInfinite } from '../../api/inventory'
 import { getProductTypes } from '../../api/menu'
 import { Card, CardHeader, CardBody, CardFooter } from '../../components/Card'
 import { Modal } from '../../components/Modal'
@@ -36,6 +36,9 @@ export default function Inventory() {
   // Availability toggle
   const [togglingId, setTogglingId] = useState<number | null>(null)
 
+  // Infinite toggle
+  const [infiniteTogglingId, setInfiniteTogglingId] = useState<number | null>(null)
+
   useEffect(() => {
     getProductTypes().then(setTypes).catch(() => {})
   }, [])
@@ -63,6 +66,18 @@ export default function Inventory() {
       // silently ignore — row will not visually change
     } finally {
       setTogglingId(null)
+    }
+  }
+
+  async function toggleInfinite(row: InventoryRow) {
+    setInfiniteTogglingId(row.product_id)
+    try {
+      await setInfinite(row.product_id, !row.is_infinite)
+      void fetchInventory()
+    } catch {
+      // silently ignore
+    } finally {
+      setInfiniteTogglingId(null)
     }
   }
 
@@ -175,7 +190,7 @@ export default function Inventory() {
                       key={row.product_id}
                       className={cn(
                         'border-b border-subtle transition-colors',
-                        row.on_hand <= 0 ? 'bg-danger-bg/30' : '',
+                        !row.is_infinite && row.on_hand <= 0 ? 'bg-danger-bg/30' : '',
                       )}
                     >
                       <td className="px-4 py-3 text-primary font-medium">{row.name}</td>
@@ -185,9 +200,9 @@ export default function Inventory() {
                       </td>
                       <td className={cn(
                         'px-4 py-3 text-right font-mono font-semibold',
-                        row.on_hand <= 0 ? 'text-danger' : 'text-primary',
+                        !row.is_infinite && row.on_hand <= 0 ? 'text-danger' : 'text-primary',
                       )}>
-                        {row.on_hand}
+                        {row.is_infinite ? '∞' : row.on_hand}
                       </td>
                       <td className="px-4 py-3">
                         <span className={cn(
@@ -205,6 +220,15 @@ export default function Inventory() {
                             onClick={() => openHistory(row)}
                           >
                             History
+                          </Button>
+                          <Button
+                            intent={row.is_infinite ? 'secondary' : 'ghost'}
+                            size="sm"
+                            loading={infiniteTogglingId === row.product_id}
+                            onClick={() => void toggleInfinite(row)}
+                            title={row.is_infinite ? 'Remove infinite availability' : 'Mark as infinitely available'}
+                          >
+                            {row.is_infinite ? '∞ Infinite' : '∞'}
                           </Button>
                           <Button
                             intent={row.is_available ? 'danger' : 'secondary'}
@@ -299,9 +323,9 @@ export default function Inventory() {
               <span className="text-secondary">Current on hand</span>
               <span className={cn(
                 'font-mono font-semibold',
-                history.on_hand <= 0 ? 'text-danger' : 'text-primary',
+                !history.is_infinite && history.on_hand <= 0 ? 'text-danger' : 'text-primary',
               )}>
-                {history.on_hand}
+                {history.is_infinite ? '∞' : history.on_hand}
               </span>
             </div>
             <div className="border-t border-subtle pt-3 space-y-1 max-h-80 overflow-y-auto">

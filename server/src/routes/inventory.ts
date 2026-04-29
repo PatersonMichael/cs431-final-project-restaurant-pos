@@ -26,6 +26,20 @@ router.get(
   })
 );
 
+// PATCH /api/inventory/:product_id/infinite — mark item as infinitely available (no stock depletion)
+router.patch(
+  "/:product_id/infinite",
+  asyncHandler(async (req: Request, res: Response) => {
+    const productId = Number(req.params["product_id"]);
+    const { is_infinite } = req.body as { is_infinite: boolean };
+    await prisma.orderableItem.update({
+      where: { itemId: productId },
+      data: { isInfinite: is_infinite },
+    });
+    res.status(204).end();
+  })
+);
+
 // PATCH /api/inventory/:product_id/availability — manually toggle orderable_item.is_available
 router.patch(
   "/:product_id/availability",

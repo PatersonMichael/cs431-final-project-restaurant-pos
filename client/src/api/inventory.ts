@@ -15,6 +15,10 @@ export function setAvailability(productId: number, isAvailable: boolean): Promis
   return api.patch(`/inventory/${productId}/availability`, { is_available: isAvailable })
 }
 
+export function setInfinite(productId: number, isInfinite: boolean): Promise<void> {
+  return api.patch(`/inventory/${productId}/infinite`, { is_infinite: isInfinite })
+}
+
 export function adjustInventory(
   productId: number,
   body: AdjustInventoryBody,

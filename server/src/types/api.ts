@@ -163,6 +163,7 @@ export interface InventoryRow {
   product_type_id: number;
   product_type_name: string;
   is_available: boolean;
+  is_infinite: boolean;
   on_hand: number;
 }
 
