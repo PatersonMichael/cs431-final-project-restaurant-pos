@@ -412,7 +412,8 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 
 ## Phase 7 — Polish & Demo Prep
 
-**Status:** Not started — awaiting checkpoint
+**Status:** Complete
+**Date:** 2026-04-28
 
 ### Scope (PRD §16)
 
@@ -425,8 +426,25 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 | README | Accurate top-level README: prerequisites, env setup, seed, dev server commands |
 | Demo prep | Verify full golden path end-to-end: login → open tab → order → fire → expediter → close out → manager review |
 
-### Notes
-- NFR-7: no raw API errors or stack traces surfaced to the user — wrap all API calls in try/catch with user-facing messages (most routes already do this; audit for gaps)
-- Mobile: `ServerLayout` has a hamburger toggle; `ExpediterBoard` and Manager views may need overflow/scroll attention at narrow widths
-- README currently exists but may be stale — regenerate from actual setup steps
-- Demo path should touch all three role surfaces and exercise at least one inventory auto-disable
+### What shipped
+
+**Shared `Spinner` component** (`client/src/components/Spinner.tsx`) — sm/md/lg sizes; replaces inline `animate-spin` divs and "Loading…" text across all views.
+
+**Loading states added** (NFR-7):
+- `ExpediterBoard` and `ExpediterArchive`: spinner shown until first poll completes (previously showed empty state or nothing)
+- `OrderDetail`, `OrdersList`, `Inventory`, `Schedule`: upgraded from plain "Loading…" text to spinner; history modal in Inventory also uses spinner
+
+**Error feedback plugged** (NFR-7):
+- `ExpediterBoard.bumpTicket` failure: inline `text-danger` message (previously silent, state was restored but user saw nothing)
+- `ExpediterArchive.reopenTicket` failure: inline `text-danger` message (previously silent)
+- `Inventory.toggleAvailability` / `toggleInfinite` failure: inline `text-danger` message (previously silent)
+
+**Empty state**: `OrderDetail` returns "Order not found." instead of `null` when `order` is missing after load.
+
+**Mobile (375px)**:
+- `ManagerLayout`: fixed 176px left nav hidden on mobile; hamburger + slide-in drawer overlay added (mirrors `ServerLayout` pattern exactly); nav links close drawer on click
+- `ExpediterLayout` and `ManagerLayout`: employee name hidden on xs screens (`hidden sm:inline`) to prevent header overflow
+
+**README** written from scratch: prerequisites, `.env` setup, `prisma migrate deploy`, seed command, dev server commands, demo golden path (all three surfaces), and project structure tree.
+
+**`tsc --noEmit` passes clean** on both client and server packages.
