@@ -32,6 +32,7 @@ model OrderableItem {
   itemId      Int         @id @default(autoincrement())
   itemType    String
   isAvailable Boolean     @default(true)
+  isInfinite  Boolean     @default(false)
   product     Product?
   package     Package?
   orderItems  OrderItem[]

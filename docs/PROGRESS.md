@@ -351,29 +351,100 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 
 ## Phase 6 — Manager Console
 
-**Status:** Not started — awaiting checkpoint
+**Status:** Complete
+**Date:** 2026-04-28
 
-### Scope
+### What shipped
 
-| FR-ID | Surface | Description |
-|---|---|---|
-| FR-MGR-1 | Orders | Filterable list: date range, status, employee, store. Defaults to today. |
-| FR-MGR-2 | Orders | Drilldown to order detail: items, payments, discounts, timestamps, server name. |
-| FR-MGR-3 | Orders | Read-only in v1. |
-| FR-INV-1 | Inventory | List all products with computed on-hand (SQL SUM of INVENTORY_TRANSACTION). |
-| FR-INV-2 | Inventory | Filter by PRODUCT_TYPE; highlight on-hand ≤ 0. |
-| FR-INV-3 | Inventory | Adjust action: signed qty, reason dropdown, optional note → new INVENTORY_TRANSACTION. |
-| FR-INV-4 | Inventory | Per-product history: last N transactions. |
-| FR-SCH-1 | Schedule | Week grid: rows = employees, columns = Mon–Sun. Cells show shifts. |
-| FR-SCH-2 | Schedule | Click empty cell → create shift form (employee + date preselected, pick role + times). |
-| FR-SCH-3 | Schedule | Click shift → edit or cancel (blocked if clock_in_timestamp is set). |
-| FR-SCH-4 | Schedule | Validation: end > start; employee must hold the chosen role. |
+**Backend fixes**
+- `GET /api/orders` — now maps Prisma output to `OrderSummary[]` DTOs (snake_case, `employee_name` resolved) (FR-MGR-1)
+- `GET /api/orders/:id` — now maps to `OrderDetail` DTO: staged items, rounds grouped by `fired_at`, discounts, payments (FR-MGR-2)
+- `OrderSummary`, `OrderDetail`, `RoleResponse`, `ShiftResponse` (with `clock_in/out_timestamp`), `InventoryHistoryResponse` added to `server/src/types/api.ts` (NFR-10)
 
-### Notes
-- All backend routes exist from Phase 2: `GET /api/orders`, `GET /api/orders/:id`, `GET /api/inventory`, `GET /api/inventory/:id/history`, `POST /api/inventory/:id/adjust`, `GET/POST/PATCH/DELETE /api/schedule`
-- Frontend stubs: `/manager/orders`, `/manager/inventory`, `/manager/schedule` render `<ComingSoon>` — replace with real components
-- Need a new route `/manager/orders/:id` for FR-MGR-2 (OrderDetail) — not yet wired in App.tsx
-- `ManagerLayout.tsx` already has the left-nav links for Orders / Inventory / Schedule
-- Client API files `orders.ts`, `inventory.ts`, `schedule.ts` already exist with typed fetch wrappers
-- `GET /api/employees?store_number=` needed for the Schedule employee rows (already exists)
-- `GET /api/employees/:id/roles` needed for the shift-create role picker validation (already exists)
+**Frontend type fixes (NFR-10)**
+- `ShiftResponse` updated with `clock_in_timestamp` / `clock_out_timestamp`
+- `OrderDetail`, `InventoryHistoryResponse` added to `client/src/types/api.ts`
+- `getOrderDetail` added to `client/src/api/orders.ts`
+- `getInventoryHistory` return type corrected to `InventoryHistoryResponse`
+- `Badge.statusTone`: added `'completed' → success`, `'cancelled' → danger`
+
+**New routes (`client/src/routes/Manager/`)**
+- `OrdersList.tsx` — date range + status + employee filters, defaults to today, click row → detail (FR-MGR-1)
+- `OrderDetail.tsx` — read-only: header, staged/rounds sections, discounts, payments, totals summary (FR-MGR-2, FR-MGR-3)
+- `Inventory.tsx` — type-filter chips, table with on-hand (SQL SUM), danger highlight for ≤ 0, Adjust modal (signed qty, reason, note), History modal (last 50 transactions) (FR-INV-1, FR-INV-2, FR-INV-3, FR-INV-4)
+- `Schedule.tsx` — week grid (employees × Mon–Sun), prev/next/today navigation, click empty cell → create shift modal (employee+date preselected, role dropdown filtered to employee's roles, time pickers, FR-SCH-4 validation), click shift → edit/cancel modal (blocked with warning if clocked in) (FR-SCH-1, FR-SCH-2, FR-SCH-3, FR-SCH-4)
+
+**App.tsx** — ComingSoon stubs replaced; `/manager/orders/:orderId` route added
+
+**`tsc --noEmit` passes clean** on both client and server packages.
+
+---
+
+## Post-Phase 6 Fixes & Features
+
+**Date:** 2026-04-29
+
+### Bug fixes (from checkpoint testing)
+
+- **Orders — payment status visible**: Added `payment_status` badge column to `OrdersList.tsx` (`unpaid` → warning, `paid` → success)
+- **Orders — filter persistence**: Filters (`from`, `to`, `status`, `employee_id`) now live in URL query params via `useSearchParams`. Back-navigating from order detail restores filters exactly.
+- **Inventory — manual disable**: Added `PATCH /api/inventory/:id/availability` + Enable/Disable toggle button per row — allows marking items unavailable regardless of stock level.
+- **Schedule — role selection broken**: `GET /api/employees/:id/roles` was returning raw Prisma `{ roleId }` (camelCase) instead of `{ role_id }`. The select `value` was always `undefined`, so selection had no visible effect and `NaN` was sent to the backend. Fixed route mapping.
+
+### New features (requested post-checkpoint)
+
+**Inventory auto-disable on zero stock**
+- `tabService.fireItems` now runs SQL SUM for each decremented product after writing its `INVENTORY_TRANSACTION`. If `on_hand ≤ 0` and the item is not infinite, `isAvailable` is set to `false` inside the same transaction.
+- `inventoryService.adjustInventory` already had this check; now also skips infinite items.
+- `addItem` already validates `isAvailable` — no change needed there.
+
+**Infinite availability flag**
+- Migration `20260429015133`: added `isInfinite BOOLEAN DEFAULT FALSE` to `orderable_item`.
+- `PATCH /api/inventory/:id/infinite` toggles the flag.
+- `getInventory` and `getProductHistory` return `is_infinite` in their DTOs.
+- Inventory table shows `∞` instead of a number for infinite items; danger highlight suppressed; `∞ Infinite` toggle button per row.
+- Auto-disable skips infinite items in both `adjustInventory` and `fireItems`.
+
+**Schedule — shift overlap validation (FR-SCH-4 extension)**
+- `createShift` and `updateShift` now reject if any existing shift for the employee overlaps `[start, end)`. Error message includes the conflicting shift's time range. `updateShift` excludes the shift being edited from the query so saving without changes never self-conflicts.
+
+---
+
+## Phase 7 — Polish & Demo Prep
+
+**Status:** Complete
+**Date:** 2026-04-28
+
+### Scope (PRD §16)
+
+| Area | Work |
+|---|---|
+| Error states | User-visible error messages for all failure paths (network, 4xx, 5xx) — no raw stack traces (NFR-7) |
+| Empty states | Meaningful zero-data messages on all list views |
+| Loading states | Loading indicators / skeletons on initial fetches |
+| Mobile viewport | Verify all three surfaces work at 375 px wide; fix any critical layout breaks |
+| README | Accurate top-level README: prerequisites, env setup, seed, dev server commands |
+| Demo prep | Verify full golden path end-to-end: login → open tab → order → fire → expediter → close out → manager review |
+
+### What shipped
+
+**Shared `Spinner` component** (`client/src/components/Spinner.tsx`) — sm/md/lg sizes; replaces inline `animate-spin` divs and "Loading…" text across all views.
+
+**Loading states added** (NFR-7):
+- `ExpediterBoard` and `ExpediterArchive`: spinner shown until first poll completes (previously showed empty state or nothing)
+- `OrderDetail`, `OrdersList`, `Inventory`, `Schedule`: upgraded from plain "Loading…" text to spinner; history modal in Inventory also uses spinner
+
+**Error feedback plugged** (NFR-7):
+- `ExpediterBoard.bumpTicket` failure: inline `text-danger` message (previously silent, state was restored but user saw nothing)
+- `ExpediterArchive.reopenTicket` failure: inline `text-danger` message (previously silent)
+- `Inventory.toggleAvailability` / `toggleInfinite` failure: inline `text-danger` message (previously silent)
+
+**Empty state**: `OrderDetail` returns "Order not found." instead of `null` when `order` is missing after load.
+
+**Mobile (375px)**:
+- `ManagerLayout`: fixed 176px left nav hidden on mobile; hamburger + slide-in drawer overlay added (mirrors `ServerLayout` pattern exactly); nav links close drawer on click
+- `ExpediterLayout` and `ManagerLayout`: employee name hidden on xs screens (`hidden sm:inline`) to prevent header overflow
+
+**README** written from scratch: prerequisites, `.env` setup, `prisma migrate deploy`, seed command, dev server commands, demo golden path (all three surfaces), and project structure tree.
+
+**`tsc --noEmit` passes clean** on both client and server packages.

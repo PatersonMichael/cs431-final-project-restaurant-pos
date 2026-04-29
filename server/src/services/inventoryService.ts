@@ -12,6 +12,7 @@ export async function getInventory(productTypeId?: number): Promise<InventoryRow
       typeId: number;
       typeName: string;
       isAvailable: number; // MySQL BOOLEAN comes back as 0/1
+      isInfinite: number;
       on_hand: string | null;
     }>
   >`
@@ -22,13 +23,14 @@ export async function getInventory(productTypeId?: number): Promise<InventoryRow
       pt.typeId,
       pt.name         AS typeName,
       oi.isAvailable,
+      oi.isInfinite,
       SUM(it.quantityChange) AS on_hand
     FROM product p
     JOIN product_type pt ON p.typeId = pt.typeId
     JOIN orderable_item oi ON oi.itemId = p.productId
     LEFT JOIN inventory_transaction it ON it.productId = p.productId
     ${productTypeId !== undefined ? Prisma.sql`WHERE p.typeId = ${productTypeId}` : Prisma.empty}
-    GROUP BY p.productId, p.name, p.basePrice, pt.typeId, pt.name, oi.isAvailable
+    GROUP BY p.productId, p.name, p.basePrice, pt.typeId, pt.name, oi.isAvailable, oi.isInfinite
     ORDER BY pt.name, p.name
   `;
 
@@ -39,6 +41,7 @@ export async function getInventory(productTypeId?: number): Promise<InventoryRow
     product_type_id: r.typeId,
     product_type_name: r.typeName,
     is_available: r.isAvailable === 1,
+    is_infinite: r.isInfinite === 1,
     on_hand: r.on_hand !== null ? Number(r.on_hand) : 0,
   }));
 }
@@ -47,6 +50,7 @@ export async function getProductHistory(productId: number): Promise<{
   product_id: number;
   name: string;
   on_hand: number;
+  is_infinite: boolean;
   transactions: {
     transaction_id: number;
     quantity_change: number;
@@ -65,6 +69,7 @@ export async function getProductHistory(productId: number): Promise<{
     where: { productId },
     include: {
       inventoryTransactions: { orderBy: { timestamp: "desc" }, take: 50 },
+      orderableItem: true,
     },
   });
 
@@ -77,6 +82,7 @@ export async function getProductHistory(productId: number): Promise<{
     product_id: product.productId,
     name: product.name,
     on_hand,
+    is_infinite: product.orderableItem.isInfinite,
     transactions: product.inventoryTransactions.map((t) => ({
       transaction_id: t.transactionId,
       quantity_change: t.quantityChange,
@@ -109,12 +115,15 @@ export async function adjustInventory(
     ? Number(firstRow.on_hand)
     : 0;
 
-  // Auto-disable ordering if stock hits zero
+  // Auto-disable ordering when stock hits zero — skip infinite items
   if (on_hand <= 0) {
-    await prisma.orderableItem.update({
-      where: { itemId: productId },
-      data: { isAvailable: false },
-    });
+    const item = await prisma.orderableItem.findUnique({ where: { itemId: productId } });
+    if (item !== null && !item.isInfinite) {
+      await prisma.orderableItem.update({
+        where: { itemId: productId },
+        data: { isAvailable: false },
+      });
+    }
   }
 
   return { transaction_id: transaction.transactionId, on_hand };

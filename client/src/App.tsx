@@ -11,16 +11,10 @@ import TabDetail        from './routes/ServerConsole/TabDetail'
 import Closeout         from './routes/ServerConsole/Closeout'
 import ExpediterBoard   from './routes/Expediter/ExpediterBoard'
 import ExpediterArchive from './routes/Expediter/ExpediterArchive'
-
-// ─── Placeholder route components (Phase 6) ──────────────────────────────────
-
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div className="flex flex-1 items-center justify-center text-muted text-sm">
-      {label} — coming in next phase
-    </div>
-  )
-}
+import OrdersList       from './routes/Manager/OrdersList'
+import OrderDetail      from './routes/Manager/OrderDetail'
+import Inventory        from './routes/Manager/Inventory'
+import Schedule         from './routes/Manager/Schedule'
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -63,7 +57,6 @@ export default function App() {
           </RequireRole>
         }
       >
-        {/* Index: empty main panel with a hint */}
         <Route
           index
           element={
@@ -85,11 +78,11 @@ export default function App() {
           </RequireRole>
         }
       >
-        <Route index   element={<ExpediterBoard />} />
+        <Route index        element={<ExpediterBoard />} />
         <Route path="archive" element={<ExpediterArchive />} />
       </Route>
 
-      {/* Manager console (FR-AUTH-3) */}
+      {/* Manager console (FR-AUTH-3, FR-MGR-1,2,3, FR-INV-1,2,3,4, FR-SCH-1,2,3,4) */}
       <Route
         path="/manager"
         element={
@@ -98,10 +91,11 @@ export default function App() {
           </RequireRole>
         }
       >
-        <Route index element={<Navigate to="/manager/orders" replace />} />
-        <Route path="orders"    element={<ComingSoon label="Orders list" />} />
-        <Route path="inventory" element={<ComingSoon label="Inventory" />} />
-        <Route path="schedule"  element={<ComingSoon label="Schedule" />} />
+        <Route index              element={<Navigate to="/manager/orders" replace />} />
+        <Route path="orders"      element={<OrdersList />} />
+        <Route path="orders/:orderId" element={<OrderDetail />} />
+        <Route path="inventory"   element={<Inventory />} />
+        <Route path="schedule"    element={<Schedule />} />
       </Route>
 
       {/* Root: redirect based on session */}

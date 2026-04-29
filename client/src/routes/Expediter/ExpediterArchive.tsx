@@ -6,6 +6,7 @@ import { usePolling } from '../../hooks/usePolling'
 import { getArchive, reopenTicket } from '../../api/kitchen'
 import { cn } from '../../lib/cn'
 import { Button } from '../../components/Button'
+import { Spinner } from '../../components/Spinner'
 
 import type { TicketResponse } from '../../types/api'
 
@@ -68,9 +69,11 @@ function ArchiveCard({ ticket, onReopen, reopening }: ArchiveCardProps) {
 
 export default function ExpediterArchive() {
   const { session } = useAuth()
-  const [tickets, setTickets]       = useState<TicketResponse[]>([])
-  const [error, setError]           = useState<string | null>(null)
-  const [reopeningKey, setReopening] = useState<string | null>(null)
+  const [tickets, setTickets]         = useState<TicketResponse[]>([])
+  const [error, setError]             = useState<string | null>(null)
+  const [ready, setReady]             = useState(false)
+  const [reopeningKey, setReopening]  = useState<string | null>(null)
+  const [reopenError, setReopenError] = useState<string | null>(null)
 
   const fetchArchive = useCallback(async () => {
     if (!session) return
@@ -80,6 +83,8 @@ export default function ExpediterArchive() {
       setTickets(data)
     } catch {
       setError('Unable to load archive.')
+    } finally {
+      setReady(true)
     }
   }, [session])
 
@@ -88,16 +93,25 @@ export default function ExpediterArchive() {
   const handleReopen = useCallback(async (ticket: TicketResponse) => {
     const key = ticketKey(ticket)
     setReopening(key)
+    setReopenError(null)
     try {
       await reopenTicket(ticket.order_id, ticket.fired_at)
       // Remove from archive immediately — it will appear on the board
       setTickets(prev => prev.filter(t => ticketKey(t) !== key))
     } catch {
-      // next poll will reconcile
+      setReopenError('Could not reopen ticket. Try again.')
     } finally {
       setReopening(null)
     }
   }, [])
+
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
 
   if (error) {
     return (
@@ -112,6 +126,7 @@ export default function ExpediterArchive() {
       <p className="text-xs text-muted">
         Today&apos;s bumped tickets. Reopen to return a ticket to the board.
       </p>
+      {reopenError && <p className="text-sm text-danger">{reopenError}</p>}
 
       {tickets.length === 0 ? (
         <p className="text-sm text-muted">No bumped tickets yet today.</p>
