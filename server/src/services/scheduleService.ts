@@ -53,6 +53,25 @@ export async function createShift(data: {
     throw new Error("Employee does not have the specified role");
   }
 
+  const start = new Date(data.start_timestamp);
+  const end   = new Date(data.end_timestamp);
+
+  // Overlap check: reject if any existing shift for this employee intersects [start, end)
+  const conflict = await prisma.shift.findFirst({
+    where: {
+      employeeId: data.employee_id,
+      AND: [
+        { startTimestamp: { lt: end } },
+        { endTimestamp:   { gt: start } },
+      ],
+    },
+  });
+  if (conflict !== null) {
+    throw new Error(
+      `Shift conflicts with an existing shift (${conflict.startTimestamp.toLocaleTimeString()} – ${conflict.endTimestamp.toLocaleTimeString()})`,
+    );
+  }
+
   const shift = await prisma.shift.create({
     data: {
       employeeId: data.employee_id,
@@ -86,6 +105,31 @@ export async function updateShift(
   const existing = await prisma.shift.findUniqueOrThrow({ where: { shiftId } });
   if (existing.clockInTimestamp !== null) {
     throw new Error("Cannot edit a shift that has already been clocked in");
+  }
+
+  // Effective start/end after applying the patch
+  const effectiveStart = data.start_timestamp !== undefined
+    ? new Date(data.start_timestamp)
+    : existing.startTimestamp;
+  const effectiveEnd = data.end_timestamp !== undefined
+    ? new Date(data.end_timestamp)
+    : existing.endTimestamp;
+
+  // Overlap check — exclude this shift from the search
+  const conflict = await prisma.shift.findFirst({
+    where: {
+      employeeId: existing.employeeId,
+      shiftId:    { not: shiftId },
+      AND: [
+        { startTimestamp: { lt: effectiveEnd } },
+        { endTimestamp:   { gt: effectiveStart } },
+      ],
+    },
+  });
+  if (conflict !== null) {
+    throw new Error(
+      `Shift conflicts with an existing shift (${conflict.startTimestamp.toLocaleTimeString()} – ${conflict.endTimestamp.toLocaleTimeString()})`,
+    );
   }
 
   const shift = await prisma.shift.update({
