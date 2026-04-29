@@ -7,6 +7,7 @@ import { useElapsed } from '../../hooks/useElapsed'
 import { getTimeBand, formatElapsed } from '../../lib/time'
 import { getTickets, bumpTicket } from '../../api/kitchen'
 import { cn } from '../../lib/cn'
+import { Spinner } from '../../components/Spinner'
 
 import type { TicketResponse } from '../../types/api'
 
@@ -105,8 +106,10 @@ function TicketCard({ ticket, onBump }: TicketCardProps) {
 
 export default function ExpediterBoard() {
   const { session } = useAuth()
-  const [tickets, setTickets] = useState<TicketResponse[]>([])
-  const [error, setError]     = useState<string | null>(null)
+  const [tickets, setTickets]   = useState<TicketResponse[]>([])
+  const [error, setError]       = useState<string | null>(null)
+  const [ready, setReady]       = useState(false)
+  const [bumpError, setBumpError] = useState<string | null>(null)
 
   const fetchTickets = useCallback(async () => {
     if (!session) return
@@ -118,6 +121,8 @@ export default function ExpediterBoard() {
       setTickets(data)
     } catch {
       setError('Unable to load kitchen tickets.')
+    } finally {
+      setReady(true)
     }
   }, [session])
 
@@ -137,8 +142,18 @@ export default function ExpediterBoard() {
           (a, b) => new Date(a.fired_at).getTime() - new Date(b.fired_at).getTime()
         )
       })
+      setBumpError('Could not bump ticket. Try again.')
+      setTimeout(() => setBumpError(null), 3000)
     }
   }, [])
+
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
 
   if (error) {
     return (
@@ -158,14 +173,19 @@ export default function ExpediterBoard() {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(272px,1fr))] items-start">
-      {tickets.map(ticket => (
-        <TicketCard
-          key={ticketKey(ticket)}
-          ticket={ticket}
-          onBump={() => { void handleBump(ticket) }}
-        />
-      ))}
+    <div className="flex flex-col gap-4">
+      {bumpError && (
+        <p className="text-sm text-danger">{bumpError}</p>
+      )}
+      <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(272px,1fr))] items-start">
+        {tickets.map(ticket => (
+          <TicketCard
+            key={ticketKey(ticket)}
+            ticket={ticket}
+            onBump={() => { void handleBump(ticket) }}
+          />
+        ))}
+      </div>
     </div>
   )
 }

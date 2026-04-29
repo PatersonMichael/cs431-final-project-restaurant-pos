@@ -8,6 +8,7 @@ import { Card, CardBody } from '../../components/Card'
 import { Input } from '../../components/Input'
 import { Badge, statusTone } from '../../components/Badge'
 import { Money } from '../../components/Money'
+import { Spinner } from '../../components/Spinner'
 import type { OrderSummary, EmployeeResponse } from '../../types/api'
 
 function todayIso(): string {
@@ -133,7 +134,9 @@ export default function OrdersList() {
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <div className="flex items-center justify-center py-16">
+          <Spinner size="lg" />
+        </div>
       ) : (
         <Card>
           <div className="overflow-x-auto">

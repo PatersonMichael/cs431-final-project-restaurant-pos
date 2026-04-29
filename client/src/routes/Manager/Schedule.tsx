@@ -7,6 +7,7 @@ import { getEmployees, getEmployeeRoles } from '../../api/employees'
 import { Modal } from '../../components/Modal'
 import { Input } from '../../components/Input'
 import { Button } from '../../components/Button'
+import { Spinner } from '../../components/Spinner'
 import { cn } from '../../lib/cn'
 import type { ShiftResponse, EmployeeResponse, RoleResponse } from '../../types/api'
 
@@ -296,7 +297,9 @@ export default function Schedule() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-muted">Loading…</td>
+                <td colSpan={8} className="px-4 py-10 text-center">
+                  <div className="flex justify-center"><Spinner /></div>
+                </td>
               </tr>
             ) : employees.length === 0 ? (
               <tr>

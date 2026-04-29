@@ -21,7 +21,7 @@ export default function ExpediterLayout() {
 
         <div className="flex items-center gap-3">
           {session && (
-            <span className="text-sm text-secondary">
+            <span className="hidden sm:inline text-sm text-secondary">
               {session.first_name} {session.last_name}
             </span>
           )}

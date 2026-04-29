@@ -6,6 +6,7 @@ import { getOrderDetail } from '../../api/orders'
 import { Card, CardHeader, CardBody } from '../../components/Card'
 import { Badge, statusTone } from '../../components/Badge'
 import { Money } from '../../components/Money'
+import { Spinner } from '../../components/Spinner'
 import type { OrderDetail as OrderDetailType } from '../../types/api'
 
 export default function OrderDetail() {
@@ -25,9 +26,13 @@ export default function OrderDetail() {
       .finally(() => setLoading(false))
   }, [orderId])
 
-  if (loading) return <p className="text-sm text-muted">Loading…</p>
+  if (loading) return (
+    <div className="flex items-center justify-center py-16">
+      <Spinner size="lg" />
+    </div>
+  )
   if (error)   return <p className="text-sm text-danger">{error}</p>
-  if (!order)  return null
+  if (!order)  return <p className="text-sm text-muted">Order not found.</p>
 
   const subtotal  = Number(order.subtotal)
   const taxAmt    = subtotal * (Number(order.tax_percent) / 100)

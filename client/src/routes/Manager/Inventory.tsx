@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 
 import { getInventory, getInventoryHistory, adjustInventory, setAvailability, setInfinite } from '../../api/inventory'
 import { getProductTypes } from '../../api/menu'
-import { Card, CardHeader, CardBody, CardFooter } from '../../components/Card'
+import { Card, CardBody } from '../../components/Card'
 import { Modal } from '../../components/Modal'
 import { Input } from '../../components/Input'
 import { Button } from '../../components/Button'
 import { Money } from '../../components/Money'
+import { Spinner } from '../../components/Spinner'
 import { cn } from '../../lib/cn'
 import type { InventoryRow, InventoryHistoryResponse, ProductTypeResponse } from '../../types/api'
 
@@ -33,11 +34,10 @@ export default function Inventory() {
   const [history, setHistory]       = useState<InventoryHistoryResponse | null>(null)
   const [histLoading, setHistLoading] = useState(false)
 
-  // Availability toggle
-  const [togglingId, setTogglingId] = useState<number | null>(null)
-
-  // Infinite toggle
+  // Availability / infinite toggle
+  const [togglingId, setTogglingId]               = useState<number | null>(null)
   const [infiniteTogglingId, setInfiniteTogglingId] = useState<number | null>(null)
+  const [toggleError, setToggleError]             = useState<string | null>(null)
 
   useEffect(() => {
     getProductTypes().then(setTypes).catch(() => {})
@@ -59,11 +59,12 @@ export default function Inventory() {
 
   async function toggleAvailability(row: InventoryRow) {
     setTogglingId(row.product_id)
+    setToggleError(null)
     try {
       await setAvailability(row.product_id, !row.is_available)
       void fetchInventory()
     } catch {
-      // silently ignore — row will not visually change
+      setToggleError('Could not update availability. Try again.')
     } finally {
       setTogglingId(null)
     }
@@ -71,11 +72,12 @@ export default function Inventory() {
 
   async function toggleInfinite(row: InventoryRow) {
     setInfiniteTogglingId(row.product_id)
+    setToggleError(null)
     try {
       await setInfinite(row.product_id, !row.is_infinite)
       void fetchInventory()
     } catch {
-      // silently ignore
+      setToggleError('Could not update infinite flag. Try again.')
     } finally {
       setInfiniteTogglingId(null)
     }
@@ -160,9 +162,12 @@ export default function Inventory() {
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
+      {toggleError && <p className="text-sm text-danger">{toggleError}</p>}
 
       {loading ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <div className="flex items-center justify-center py-16">
+          <Spinner size="lg" />
+        </div>
       ) : (
         <Card>
           <div className="overflow-x-auto">
@@ -314,7 +319,9 @@ export default function Inventory() {
         size="md"
       >
         {histLoading ? (
-          <p className="text-sm text-muted">Loading…</p>
+          <div className="flex items-center justify-center py-8">
+            <Spinner />
+          </div>
         ) : history === null ? (
           <p className="text-sm text-danger">Failed to load history.</p>
         ) : (
