@@ -94,23 +94,22 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Logging in
 
-1. Select a store (store 101 is the default seeded store).
-2. Pick an employee from the list.
-3. If the employee holds roles in multiple surfaces, choose a role category:
-   - **Server / Cashier** → Server Console
-   - **Cook / Prep / Expo / Support** → Kitchen Expediter
-   - **Manager / GM** → Manager Console
+1. Select a store (store 100 is the default seeded store).
+2. Pick an employee from the list:
+   - **Alice Johnson** -> General Manager
+   - **Henry Davis** → Expediter
+   - **Carol Lee** → Server
 
 ## Demo golden path
 
-1. **Login as a server** (e.g., Alice Johnson, role: server) → Server Console
+1. **Login as a server** (e.g., Carol Lee) → Server Console
 2. Tap **New Tab**, enter a customer name, confirm
 3. Browse the menu, add 2–3 items, tap **Fire** → items sent to kitchen
 4. **Open a second browser tab**, login as a cook → Kitchen Expediter
 5. See the ticket appear; **double-tap** the card to bump it ready
 6. Back in the server tab, tap **Close Out** on the tab
 7. Apply a discount (optional), add a cash or card payment, close the tab
-8. **Login as a manager** (e.g., Michael Scott, role: manager) → Manager Console
+8. **Login as a manager** (e.g., Alice Johnson) → Manager Console
 9. Open **Orders** — the completed tab appears in today's list
 10. Click the row to see the full order detail
 11. Open **Inventory** — check on-hand counts; any fired item's stock decreased
