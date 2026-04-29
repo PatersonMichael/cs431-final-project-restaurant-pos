@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-import { getInventory, getInventoryHistory, adjustInventory } from '../../api/inventory'
+import { getInventory, getInventoryHistory, adjustInventory, setAvailability } from '../../api/inventory'
 import { getProductTypes } from '../../api/menu'
 import { Card, CardHeader, CardBody, CardFooter } from '../../components/Card'
 import { Modal } from '../../components/Modal'
@@ -33,6 +33,9 @@ export default function Inventory() {
   const [history, setHistory]       = useState<InventoryHistoryResponse | null>(null)
   const [histLoading, setHistLoading] = useState(false)
 
+  // Availability toggle
+  const [togglingId, setTogglingId] = useState<number | null>(null)
+
   useEffect(() => {
     getProductTypes().then(setTypes).catch(() => {})
   }, [])
@@ -50,6 +53,18 @@ export default function Inventory() {
   }, [filterTypeId])
 
   useEffect(() => { void fetchInventory() }, [fetchInventory])
+
+  async function toggleAvailability(row: InventoryRow) {
+    setTogglingId(row.product_id)
+    try {
+      await setAvailability(row.product_id, !row.is_available)
+      void fetchInventory()
+    } catch {
+      // silently ignore — row will not visually change
+    } finally {
+      setTogglingId(null)
+    }
+  }
 
   function openAdjust(row: InventoryRow) {
     setAdjustTarget(row)
@@ -190,6 +205,14 @@ export default function Inventory() {
                             onClick={() => openHistory(row)}
                           >
                             History
+                          </Button>
+                          <Button
+                            intent={row.is_available ? 'danger' : 'secondary'}
+                            size="sm"
+                            loading={togglingId === row.product_id}
+                            onClick={() => void toggleAvailability(row)}
+                          >
+                            {row.is_available ? 'Disable' : 'Enable'}
                           </Button>
                           <Button
                             intent="secondary"

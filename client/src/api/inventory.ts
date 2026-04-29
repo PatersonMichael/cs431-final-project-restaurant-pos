@@ -11,6 +11,10 @@ export function getInventoryHistory(productId: number): Promise<InventoryHistory
   return api.get(`/inventory/${productId}/history`)
 }
 
+export function setAvailability(productId: number, isAvailable: boolean): Promise<void> {
+  return api.patch(`/inventory/${productId}/availability`, { is_available: isAvailable })
+}
+
 export function adjustInventory(
   productId: number,
   body: AdjustInventoryBody,

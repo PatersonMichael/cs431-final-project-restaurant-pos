@@ -41,6 +41,8 @@ export function statusTone(status: string): BadgeTone {
     case 'completed':   return 'success'
     case 'closed':      return 'success'
     case 'paid':        return 'success'
+    case 'unpaid':      return 'warning'
+    case 'partial':     return 'warning'
     case 'cancelled':   return 'danger'
     default:            return 'neutral'
   }

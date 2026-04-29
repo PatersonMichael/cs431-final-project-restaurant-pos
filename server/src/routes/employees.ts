@@ -58,7 +58,12 @@ router.get(
       where: { employeeId: Number(req.params["id"]) },
       include: { role: true },
     });
-    res.json(employeeRoles.map((er) => er.role));
+    res.json(
+      employeeRoles.map((er) => ({
+        role_id: er.role.roleId,
+        name: er.role.name,
+      })),
+    );
   })
 );
 
