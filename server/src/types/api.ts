@@ -185,3 +185,64 @@ export interface DiscountListItem {
   type: string;
 }
 
+export interface OrderSummary {
+  order_id: number;
+  customer_name: string | null;
+  timestamp: string;
+  preparation_status: string;
+  payment_status: string;
+  store_number: number;
+  employee_id: number | null;
+  employee_name: string | null;
+  subtotal: string;
+  total: string;
+}
+
+export interface OrderDetail {
+  order_id: number;
+  customer_name: string | null;
+  timestamp: string;
+  preparation_status: string;
+  payment_status: string;
+  store_number: number;
+  employee_id: number | null;
+  employee_name: string | null;
+  subtotal: string;
+  total: string;
+  tip: string | null;
+  tax_percent: string;
+  staged: OrderItemRow[];
+  rounds: Round[];
+  discounts: DiscountRow[];
+  payments: PaymentRow[];
+}
+
+export interface RoleResponse {
+  role_id: number;
+  name: string;
+}
+
+export interface ShiftResponse {
+  shift_id: number;
+  employee_id: number;
+  employee_name: string;
+  role_id: number;
+  role_name: string;
+  start_timestamp: string;
+  end_timestamp: string;
+  clock_in_timestamp: string | null;
+  clock_out_timestamp: string | null;
+}
+
+export interface InventoryHistoryResponse {
+  product_id: number;
+  name: string;
+  on_hand: number;
+  transactions: {
+    transaction_id: number;
+    quantity_change: number;
+    reason: string;
+    timestamp: string;
+  }[];
+}
+

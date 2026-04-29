@@ -351,29 +351,29 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 
 ## Phase 6 — Manager Console
 
-**Status:** Not started — awaiting checkpoint
+**Status:** Complete
+**Date:** 2026-04-28
 
-### Scope
+### What shipped
 
-| FR-ID | Surface | Description |
-|---|---|---|
-| FR-MGR-1 | Orders | Filterable list: date range, status, employee, store. Defaults to today. |
-| FR-MGR-2 | Orders | Drilldown to order detail: items, payments, discounts, timestamps, server name. |
-| FR-MGR-3 | Orders | Read-only in v1. |
-| FR-INV-1 | Inventory | List all products with computed on-hand (SQL SUM of INVENTORY_TRANSACTION). |
-| FR-INV-2 | Inventory | Filter by PRODUCT_TYPE; highlight on-hand ≤ 0. |
-| FR-INV-3 | Inventory | Adjust action: signed qty, reason dropdown, optional note → new INVENTORY_TRANSACTION. |
-| FR-INV-4 | Inventory | Per-product history: last N transactions. |
-| FR-SCH-1 | Schedule | Week grid: rows = employees, columns = Mon–Sun. Cells show shifts. |
-| FR-SCH-2 | Schedule | Click empty cell → create shift form (employee + date preselected, pick role + times). |
-| FR-SCH-3 | Schedule | Click shift → edit or cancel (blocked if clock_in_timestamp is set). |
-| FR-SCH-4 | Schedule | Validation: end > start; employee must hold the chosen role. |
+**Backend fixes**
+- `GET /api/orders` — now maps Prisma output to `OrderSummary[]` DTOs (snake_case, `employee_name` resolved) (FR-MGR-1)
+- `GET /api/orders/:id` — now maps to `OrderDetail` DTO: staged items, rounds grouped by `fired_at`, discounts, payments (FR-MGR-2)
+- `OrderSummary`, `OrderDetail`, `RoleResponse`, `ShiftResponse` (with `clock_in/out_timestamp`), `InventoryHistoryResponse` added to `server/src/types/api.ts` (NFR-10)
 
-### Notes
-- All backend routes exist from Phase 2: `GET /api/orders`, `GET /api/orders/:id`, `GET /api/inventory`, `GET /api/inventory/:id/history`, `POST /api/inventory/:id/adjust`, `GET/POST/PATCH/DELETE /api/schedule`
-- Frontend stubs: `/manager/orders`, `/manager/inventory`, `/manager/schedule` render `<ComingSoon>` — replace with real components
-- Need a new route `/manager/orders/:id` for FR-MGR-2 (OrderDetail) — not yet wired in App.tsx
-- `ManagerLayout.tsx` already has the left-nav links for Orders / Inventory / Schedule
-- Client API files `orders.ts`, `inventory.ts`, `schedule.ts` already exist with typed fetch wrappers
-- `GET /api/employees?store_number=` needed for the Schedule employee rows (already exists)
-- `GET /api/employees/:id/roles` needed for the shift-create role picker validation (already exists)
+**Frontend type fixes (NFR-10)**
+- `ShiftResponse` updated with `clock_in_timestamp` / `clock_out_timestamp`
+- `OrderDetail`, `InventoryHistoryResponse` added to `client/src/types/api.ts`
+- `getOrderDetail` added to `client/src/api/orders.ts`
+- `getInventoryHistory` return type corrected to `InventoryHistoryResponse`
+- `Badge.statusTone`: added `'completed' → success`, `'cancelled' → danger`
+
+**New routes (`client/src/routes/Manager/`)**
+- `OrdersList.tsx` — date range + status + employee filters, defaults to today, click row → detail (FR-MGR-1)
+- `OrderDetail.tsx` — read-only: header, staged/rounds sections, discounts, payments, totals summary (FR-MGR-2, FR-MGR-3)
+- `Inventory.tsx` — type-filter chips, table with on-hand (SQL SUM), danger highlight for ≤ 0, Adjust modal (signed qty, reason, note), History modal (last 50 transactions) (FR-INV-1, FR-INV-2, FR-INV-3, FR-INV-4)
+- `Schedule.tsx` — week grid (employees × Mon–Sun), prev/next/today navigation, click empty cell → create shift modal (employee+date preselected, role dropdown filtered to employee's roles, time pickers, FR-SCH-4 validation), click shift → edit/cancel modal (blocked with warning if clocked in) (FR-SCH-1, FR-SCH-2, FR-SCH-3, FR-SCH-4)
+
+**App.tsx** — ComingSoon stubs replaced; `/manager/orders/:orderId` route added
+
+**`tsc --noEmit` passes clean** on both client and server packages.

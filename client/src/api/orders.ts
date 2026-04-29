@@ -1,6 +1,6 @@
 import { api } from './client'
 
-import type { OrderSummary } from '../types/api'
+import type { OrderSummary, OrderDetail } from '../types/api'
 
 export interface OrderFilters {
   from?: string
@@ -19,4 +19,8 @@ export function getOrders(filters: OrderFilters = {}): Promise<OrderSummary[]> {
   if (filters.store_number != null) params.set('store_number', String(filters.store_number))
   const qs = params.toString() ? `?${params.toString()}` : ''
   return api.get(`/orders${qs}`)
+}
+
+export function getOrderDetail(orderId: number): Promise<OrderDetail> {
+  return api.get(`/orders/${orderId}`)
 }

@@ -1,16 +1,19 @@
 import { api } from './client'
 
-import type { InventoryRow, InventoryTransaction, AdjustInventoryBody } from '../types/api'
+import type { InventoryRow, InventoryHistoryResponse, AdjustInventoryBody } from '../types/api'
 
 export function getInventory(productTypeId?: number): Promise<InventoryRow[]> {
   const qs = productTypeId != null ? `?product_type_id=${productTypeId}` : ''
   return api.get(`/inventory${qs}`)
 }
 
-export function getInventoryHistory(productId: number): Promise<InventoryTransaction[]> {
+export function getInventoryHistory(productId: number): Promise<InventoryHistoryResponse> {
   return api.get(`/inventory/${productId}/history`)
 }
 
-export function adjustInventory(productId: number, body: AdjustInventoryBody): Promise<void> {
+export function adjustInventory(
+  productId: number,
+  body: AdjustInventoryBody,
+): Promise<{ transaction_id: number; on_hand: number }> {
   return api.post(`/inventory/${productId}/adjust`, body)
 }
