@@ -1,24 +1,26 @@
-import client from "./client";
-import type { Order } from "../types";
+import { api } from './client'
 
-export interface CreateOrderPayload {
-  customerName: string;
-  storeNumber: number;
-  taxPercent: number;
-  tip?: number;
-  employeeId?: number;
-  discountIds?: number[];
-  items: { itemId: number; quantity: number; priceAtPurchase: number }[];
+import type { OrderSummary, OrderDetail } from '../types/api'
+
+export interface OrderFilters {
+  from?: string
+  to?: string
+  status?: string
+  employee_id?: number
+  store_number?: number
 }
 
-export const getOrders = () =>
-  client.get<Order[]>("/orders").then((r) => r.data);
+export function getOrders(filters: OrderFilters = {}): Promise<OrderSummary[]> {
+  const params = new URLSearchParams()
+  if (filters.from) params.set('from', filters.from)
+  if (filters.to) params.set('to', filters.to)
+  if (filters.status) params.set('status', filters.status)
+  if (filters.employee_id != null) params.set('employee_id', String(filters.employee_id))
+  if (filters.store_number != null) params.set('store_number', String(filters.store_number))
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return api.get(`/orders${qs}`)
+}
 
-export const getOrder = (id: number) =>
-  client.get<Order>(`/orders/${id}`).then((r) => r.data);
-
-export const createOrder = (payload: CreateOrderPayload) =>
-  client.post<Order>("/orders", payload).then((r) => r.data);
-
-export const updateOrderStatus = (id: number, preparationStatus: string) =>
-  client.put<Order>(`/orders/${id}/status`, { preparationStatus }).then((r) => r.data);
+export function getOrderDetail(orderId: number): Promise<OrderDetail> {
+  return api.get(`/orders/${orderId}`)
+}

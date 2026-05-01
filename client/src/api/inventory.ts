@@ -1,22 +1,27 @@
-import client from "./client";
-import type { InventoryItem, InventoryDetail } from "../types";
+import { api } from './client'
 
-export interface CreateInventoryTransactionPayload {
-  productId: number;
-  quantityChange: number;
-  reason: string;
+import type { InventoryRow, InventoryHistoryResponse, AdjustInventoryBody } from '../types/api'
+
+export function getInventory(productTypeId?: number): Promise<InventoryRow[]> {
+  const qs = productTypeId != null ? `?product_type_id=${productTypeId}` : ''
+  return api.get(`/inventory${qs}`)
 }
 
-export interface CreateInventoryTransactionResponse {
-  transaction: InventoryDetail["transactions"][number];
-  currentStock: number;
+export function getInventoryHistory(productId: number): Promise<InventoryHistoryResponse> {
+  return api.get(`/inventory/${productId}/history`)
 }
 
-export const getInventory = () =>
-  client.get<InventoryItem[]>("/inventory").then((r) => r.data);
+export function setAvailability(productId: number, isAvailable: boolean): Promise<void> {
+  return api.patch(`/inventory/${productId}/availability`, { is_available: isAvailable })
+}
 
-export const getInventoryForProduct = (productId: number) =>
-  client.get<InventoryDetail>(`/inventory/${productId}`).then((r) => r.data);
+export function setInfinite(productId: number, isInfinite: boolean): Promise<void> {
+  return api.patch(`/inventory/${productId}/infinite`, { is_infinite: isInfinite })
+}
 
-export const createInventoryTransaction = (payload: CreateInventoryTransactionPayload) =>
-  client.post<CreateInventoryTransactionResponse>("/inventory", payload).then((r) => r.data);
+export function adjustInventory(
+  productId: number,
+  body: AdjustInventoryBody,
+): Promise<{ transaction_id: number; on_hand: number }> {
+  return api.post(`/inventory/${productId}/adjust`, body)
+}

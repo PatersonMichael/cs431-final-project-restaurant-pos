@@ -1,16 +1,20 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import App from "./App.tsx";
-import "./index.css";
-import { CartProvider } from "./context/CartContext.tsx";
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 
-createRoot(document.getElementById("root")!).render(
+import { AuthProvider } from './auth/AuthContext'
+import App from './App'
+import './index.css'
+
+const root = document.getElementById('root')
+if (!root) throw new Error('Missing #root element')
+
+createRoot(root).render(
   <StrictMode>
     <BrowserRouter>
-      <CartProvider>
-      <App />
-      </CartProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
-  </StrictMode>
-);
+  </StrictMode>,
+)
