@@ -4,7 +4,7 @@ A tab-based point-of-sale web application with three role surfaces:
 
 - **Server Console** — open tabs, add items, fire rounds to the kitchen, close out with payment
 - **Kitchen Expediter** — view active tickets with live elapsed time, bump when ready
-- **Manager Console** — order history, inventory management, employee schedule
+- **Manager Console** — order history, inventory management, employee schedule, analytics dashboard
 
 ## Prerequisites
 
@@ -74,7 +74,7 @@ cd server
 npx tsx src/seed.ts
 ```
 
-This inserts the minimum required data: 13 addresses, 10 roles, 10 employees, 10 product types, 22 products, 5 packages, 10 discounts, 2 restaurants, and 1 store.
+This inserts the baseline reference data (employees, products, discounts, etc.) **plus 120 completed orders** spread across the past 30 days with realistic distributions — required for the analytics dashboard to show meaningful data.
 
 ## Running the app
 
@@ -96,9 +96,11 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 1. Select a store (store 100 is the default seeded store).
 2. Pick an employee from the list:
-   - **Alice Johnson** -> General Manager
-   - **Henry Davis** → Expediter
-   - **Carol Lee** → Server
+   - **Alice Johnson** → General Manager (Manager Console)
+   - **Henry Davis** → Expediter (Kitchen Expediter)
+   - **Carol Lee** → Server (Server Console)
+   - **David Brown** → Server (Server Console)
+   - **Emma Wilson** → Server (Server Console)
 
 ## Demo golden path
 
@@ -114,25 +116,40 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 10. Click the row to see the full order detail
 11. Open **Inventory** — check on-hand counts; any fired item's stock decreased
 12. Open **Schedule** — view the week grid; click a cell to create a shift
+13. Open **Analytics** — view the full dashboard for the last 30 days:
+    - KPI cards (revenue, orders, avg ticket, tips)
+    - Revenue over time area chart
+    - Sales by employee table
+    - Top products (toggle by quantity vs revenue)
+    - Sales by category donut chart
+    - Payment method breakdown
+    - Discount usage report
+14. Enable **Compare to prior period** in the date filter — KPI cards show % change and the revenue chart overlays a second series
 
 ## Project structure
 
 ```
 ├── client/          # React + Vite + TypeScript + Tailwind CSS
 │   └── src/
-│       ├── api/         # fetch-based API client, one file per resource
-│       ├── auth/        # AuthContext + Login page
-│       ├── components/  # shared UI components (Button, Card, Modal, Badge…)
-│       ├── hooks/       # usePolling, useElapsed
-│       ├── layouts/     # ServerLayout, ExpediterLayout, ManagerLayout
-│       ├── lib/         # cn, money, time utilities
-│       ├── routes/      # ServerConsole/, Expediter/, Manager/
-│       └── types/       # api.ts — frontend DTOs
+│       ├── api/                  # fetch-based API client, one file per resource
+│       │   └── analytics.ts      # analytics endpoint client
+│       ├── auth/                 # AuthContext + Login page
+│       ├── components/           # shared UI components (Button, Card, Modal, Badge…)
+│       │   └── analytics/        # DateRangeFilter, KpiCard, SalesTable, RevenueChart,
+│       │                         #   CategoryChart, PaymentBreakdown, DiscountReport
+│       ├── hooks/                # usePolling, useElapsed
+│       ├── layouts/              # ServerLayout, ExpediterLayout, ManagerLayout
+│       ├── lib/                  # cn, money, time utilities
+│       ├── routes/               # ServerConsole/, Expediter/, Manager/
+│       │   └── Manager/
+│       │       └── Analytics.tsx # analytics dashboard page
+│       └── types/                # api.ts — frontend DTOs
 │
 └── server/          # Node.js + Express + Prisma + TypeScript
     └── src/
         ├── middleware/  # employeeContext, errorHandler
         ├── routes/      # thin Express route handlers
+        │   └── analytics.ts  # GET /api/analytics/* (7 endpoints)
         ├── schemas/     # Zod validation schemas
         ├── services/    # business logic (tabService, kitchenService…)
         └── types/       # api.ts — backend DTOs (source of truth)
