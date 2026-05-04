@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LogOut, ClipboardList, Package, Calendar, Menu, X } from 'lucide-react'
+import { LogOut, ClipboardList, Package, Calendar, BarChart2, Menu, X } from 'lucide-react'
 
 import { useAuth } from '../auth/AuthContext'
 import { cn } from '../lib/cn'
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/manager/orders',    label: 'Orders',    Icon: ClipboardList },
   { to: '/manager/inventory', label: 'Inventory', Icon: Package       },
   { to: '/manager/schedule',  label: 'Schedule',  Icon: Calendar      },
+  { to: '/manager/analytics', label: 'Analytics', Icon: BarChart2     },
 ]
 
 export default function ManagerLayout() {

@@ -15,6 +15,7 @@ import OrdersList       from './routes/Manager/OrdersList'
 import OrderDetail      from './routes/Manager/OrderDetail'
 import Inventory        from './routes/Manager/Inventory'
 import Schedule         from './routes/Manager/Schedule'
+import Analytics        from './routes/Manager/Analytics'
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -96,6 +97,7 @@ export default function App() {
         <Route path="orders/:orderId" element={<OrderDetail />} />
         <Route path="inventory"   element={<Inventory />} />
         <Route path="schedule"    element={<Schedule />} />
+        <Route path="analytics"   element={<Analytics />} />
       </Route>
 
       {/* Root: redirect based on session */}

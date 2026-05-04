@@ -448,3 +448,43 @@ Additional open question: should the extra `Order.discount` and `Order.paymentSt
 **README** written from scratch: prerequisites, `.env` setup, `prisma migrate deploy`, seed command, dev server commands, demo golden path (all three surfaces), and project structure tree.
 
 **`tsc --noEmit` passes clean** on both client and server packages.
+
+---
+
+## Analytics Phase 1 — Seed Data + Analytics Backend
+
+**Status:** Complete
+**Date:** 2026-04-30
+
+### What shipped
+
+**Seed data expanded** (`server/src/seed.ts`):
+- 120 completed + paid orders spread across Apr 1–30, 2026 (4 per day)
+- 6 cancelled orders for realism
+- Orders distributed across server employees: Carol (50%), David (35%), Emma (15%)
+- Weighted item selection — burgers and sodas ordered most; desserts and breakfast items rare
+- Lunch rush (11am–2pm) and dinner rush (5pm–9pm) period distribution
+- 20% of orders have a discount (Happy Hour, Senior, Student, Military, Birthday, $5/$10 Off, Loyalty Reward)
+- 70% card / 30% cash payments; card orders include `card` and `electronic_payment` records with brand (Visa/Mastercard/Amex/Discover)
+- Tip rates (0–25%) with realistic distribution; `tip=null` for no-tip orders
+- Seeded PRNG (xorshift32, seed=42) — re-running seed produces identical dataset (NFR-A6 testability)
+
+**New analytics types** added to both `server/src/types/api.ts` and `client/src/types/api.ts` (NFR-A4, NFR-A6):
+- `AnalyticsSummaryResponse` (FR-ANALYTICS-1)
+- `SalesByEmployeeResponse`, `EmployeeSalesRow` (FR-ANALYTICS-2)
+- `TopProductsResponse`, `TopProductRow` (FR-ANALYTICS-3)
+- `RevenueOverTimeResponse`, `RevenueDataPoint` (FR-ANALYTICS-4)
+- `SalesByCategoryResponse`, `CategoryRow` (FR-ANALYTICS-5)
+- `PaymentMethodsResponse`, `PaymentMethodRow`, `CardBrandRow` (FR-ANALYTICS-6)
+- `DiscountUsageResponse`, `DiscountUsageRow` (FR-ANALYTICS-7)
+
+**New analytics router** (`server/src/routes/analytics.ts`, registered at `/api/analytics`):
+- All 7 endpoints: `summary`, `sales-by-employee`, `top-products`, `revenue-over-time`, `sales-by-category`, `payment-methods`, `discounts`
+- All aggregation in SQL via `prisma.$queryRaw` + `Prisma.sql`/`Prisma.empty` (NFR-A1)
+- Optional `?from=&to=&store_number=` on every endpoint; defaults to last 30 days
+- Only `paymentStatus = 'paid'` orders counted in revenue metrics
+- `payment.type = 'electronic'` mapped to `"card"` in FR-ANALYTICS-6 response
+- Granularity auto-selects `hour` for ≤1-day range, `day` otherwise (FR-ANALYTICS-4)
+- Revenue/monetary values returned as 2-decimal strings (consistent with existing API contract)
+
+**`tsc --noEmit` passes clean** on both client and server packages.

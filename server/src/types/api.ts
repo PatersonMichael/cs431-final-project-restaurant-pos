@@ -247,3 +247,98 @@ export interface InventoryHistoryResponse {
   }[];
 }
 
+// ─── Analytics response shapes (FR-ANALYTICS-1 – FR-ANALYTICS-7) ─────────────
+
+export interface AnalyticsPeriod {
+  from: string;
+  to: string;
+}
+
+export interface AnalyticsSummaryResponse {
+  total_revenue: string;
+  total_orders: number;
+  average_order_value: string;
+  total_tips: string;
+  period: AnalyticsPeriod;
+}
+
+export interface EmployeeSalesRow {
+  employee_id: number;
+  name: string;
+  total_sales: string;
+  order_count: number;
+  average_ticket: string;
+  total_tips: string;
+}
+
+export interface SalesByEmployeeResponse {
+  employees: EmployeeSalesRow[];
+}
+
+export interface TopProductRow {
+  product_id: number;
+  name: string;
+  category: string;
+  quantity_sold: number;
+  revenue: string;
+}
+
+export interface TopProductsResponse {
+  by_quantity: TopProductRow[];
+  by_revenue: TopProductRow[];
+}
+
+export interface RevenueDataPoint {
+  period: string;
+  revenue: string;
+  order_count: number;
+}
+
+export interface RevenueOverTimeResponse {
+  granularity: "hour" | "day";
+  data: RevenueDataPoint[];
+}
+
+export interface CategoryRow {
+  type_id: number;
+  category: string;
+  quantity_sold: number;
+  revenue: string;
+  percentage_of_revenue: number;
+}
+
+export interface SalesByCategoryResponse {
+  categories: CategoryRow[];
+}
+
+export interface PaymentMethodRow {
+  type: string;
+  count: number;
+  total: string;
+  percentage: number;
+}
+
+export interface CardBrandRow {
+  brand: string;
+  count: number;
+  total: string;
+}
+
+export interface PaymentMethodsResponse {
+  methods: PaymentMethodRow[];
+  card_brands: CardBrandRow[];
+}
+
+export interface DiscountUsageRow {
+  discount_id: number;
+  name: string;
+  times_used: number;
+  total_value: string;
+  type: string;
+}
+
+export interface DiscountUsageResponse {
+  discounts: DiscountUsageRow[];
+  total_discount_value: string;
+}
+

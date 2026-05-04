@@ -57,6 +57,9 @@ async function main() {
     data: { line1: "777 Sycamore Ave", city: "San Leandro", state: "CA", country: "US", postalCode: "94577" },
   });
 
+  void addr12;
+  void addr13;
+
   // ── Restaurant ────────────────────────────────────────────────────────────
   const restaurant = await prisma.restaurant.create({
     data: {
@@ -440,6 +443,8 @@ async function main() {
     },
   });
 
+  void alice; void bob; void frank; void grace; void henry; void isabel; void james;
+
   // ── Shifts ────────────────────────────────────────────────────────────────
   const today = new Date("2026-04-27");
   const mkDate = (h: number, m = 0) => new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
@@ -496,16 +501,238 @@ async function main() {
   });
 
   // ── Discounts (10) ────────────────────────────────────────────────────────
-  await prisma.discount.create({ data: { name: "Employee Discount",  value: 30, type: "percent" } });
-  await prisma.discount.create({ data: { name: "Happy Hour",         value: 15, type: "percent" } });
-  await prisma.discount.create({ data: { name: "Senior Discount",    value: 10, type: "percent" } });
-  await prisma.discount.create({ data: { name: "Student Discount",   value: 10, type: "percent" } });
-  await prisma.discount.create({ data: { name: "Military Discount",  value: 15, type: "percent" } });
-  await prisma.discount.create({ data: { name: "Manager Comp",       value: 100, type: "percent" } });
-  await prisma.discount.create({ data: { name: "$5 Off",             value: 5,  type: "fixed" } });
-  await prisma.discount.create({ data: { name: "$10 Off",            value: 10, type: "fixed" } });
-  await prisma.discount.create({ data: { name: "Birthday Special",   value: 20, type: "percent" } });
-  await prisma.discount.create({ data: { name: "Loyalty Reward",     value: 5,  type: "fixed" } });
+  void await prisma.discount.create({ data: { name: "Employee Discount",  value: 30,  type: "percent" } });
+  const discHappyHour   = await prisma.discount.create({ data: { name: "Happy Hour",         value: 15,  type: "percent" } });
+  const discSenior      = await prisma.discount.create({ data: { name: "Senior Discount",    value: 10,  type: "percent" } });
+  const discStudent     = await prisma.discount.create({ data: { name: "Student Discount",   value: 10,  type: "percent" } });
+  const discMilitary    = await prisma.discount.create({ data: { name: "Military Discount",  value: 15,  type: "percent" } });
+  void await prisma.discount.create({ data: { name: "Manager Comp",       value: 100, type: "percent" } });
+  const disc5Off        = await prisma.discount.create({ data: { name: "$5 Off",             value: 5,   type: "fixed" } });
+  const disc10Off       = await prisma.discount.create({ data: { name: "$10 Off",            value: 10,  type: "fixed" } });
+  const discBirthday    = await prisma.discount.create({ data: { name: "Birthday Special",   value: 20,  type: "percent" } });
+  const discLoyalty     = await prisma.discount.create({ data: { name: "Loyalty Reward",     value: 5,   type: "fixed" } });
+
+  // ── PRNG (xorshift32, seed=42, deterministic) ─────────────────────────────
+  let prngState = 42;
+  function prng(): number {
+    prngState ^= prngState << 13;
+    prngState ^= prngState >> 17;
+    prngState ^= prngState << 5;
+    prngState = prngState >>> 0;
+    return prngState / 0x100000000;
+  }
+  function rndInt(lo: number, hi: number) { return Math.floor(prng() * (hi - lo + 1)) + lo; }
+  function rndPick<T>(arr: readonly T[]): T { return arr[Math.floor(prng() * arr.length)]!; }
+  function rndWeighted<T>(items: readonly T[], weights: readonly number[]): T {
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = prng() * total;
+    for (let i = 0; i < items.length; i++) {
+      r -= weights[i]!;
+      if (r <= 0) return items[i]!;
+    }
+    return items[items.length - 1]!;
+  }
+  function r2(n: number) { return Math.round(n * 100) / 100; }
+
+  // ── Analytics menu pool (itemId, price, weight) ──────────────────────────
+  const menuPool = [
+    { itemId: pClassicBurger.itemId,    price: 8.99,  weight: 12 },
+    { itemId: pCheeseBurger.itemId,     price: 9.99,  weight: 10 },
+    { itemId: pBaconBurger.itemId,      price: 11.49, weight: 6  },
+    { itemId: pMushroomBurger.itemId,   price: 12.99, weight: 4  },
+    { itemId: pBLT.itemId,              price: 8.49,  weight: 3  },
+    { itemId: pClub.itemId,             price: 10.49, weight: 3  },
+    { itemId: pGrilledCheese.itemId,    price: 6.99,  weight: 3  },
+    { itemId: pCaesar.itemId,           price: 9.99,  weight: 4  },
+    { itemId: pGarden.itemId,           price: 7.99,  weight: 3  },
+    { itemId: pFries.itemId,            price: 3.99,  weight: 15 },
+    { itemId: pOnionRings.itemId,       price: 4.49,  weight: 5  },
+    { itemId: pColeslaw.itemId,         price: 2.99,  weight: 2  },
+    { itemId: pSoda.itemId,             price: 1.99,  weight: 16 },
+    { itemId: pMilkshake.itemId,        price: 4.99,  weight: 5  },
+    { itemId: pLemonade.itemId,         price: 2.99,  weight: 4  },
+    { itemId: pBrownie.itemId,          price: 3.99,  weight: 3  },
+    { itemId: pApplePie.itemId,         price: 4.49,  weight: 2  },
+    { itemId: pBreakfastBurrito.itemId, price: 8.99,  weight: 1  },
+    { itemId: pKidsBurger.itemId,       price: 5.99,  weight: 3  },
+    { itemId: pDraftBeer.itemId,        price: 6.99,  weight: 4  },
+    { itemId: pDailySpecial.itemId,     price: 14.99, weight: 2  },
+    { itemId: pSeasonalSalad.itemId,    price: 11.99, weight: 2  },
+  ] as const;
+
+  // Server employees for generated orders
+  const serverEmps = [carol, david, emma] as const;
+  const serverWeights = [50, 35, 15] as const;
+
+  // Discount pool (not Employee/Manager Comp)
+  const discountPool = [
+    { disc: discHappyHour, weight: 20 },
+    { disc: discSenior,    weight: 15 },
+    { disc: discStudent,   weight: 15 },
+    { disc: discMilitary,  weight: 12 },
+    { disc: discBirthday,  weight: 8  },
+    { disc: disc5Off,      weight: 15 },
+    { disc: disc10Off,     weight: 10 },
+    { disc: discLoyalty,   weight: 15 },
+  ] as const;
+
+  // Tip rates (fraction of taxable subtotal)
+  const tipRates   = [0, 0.10, 0.15, 0.18, 0.20, 0.22, 0.25] as const;
+  const tipWeights = [8,   10,   20,   20,   25,   10,    7  ] as const;
+
+  // Hour distribution weighted toward lunch (11-14) and dinner (17-21)
+  const hourWeights = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // 0-9
+    1, 6, 12, 10, 5, 2, 3,           // 10-16
+    8, 12, 10, 7, 5, 2, 1,           // 17-23
+  ] as const;
+  const hours = Array.from({ length: 24 }, (_, i) => i) as number[];
+
+  // Card brands
+  const cardBrands   = ["Visa", "Mastercard", "Amex", "Discover"] as const;
+  const cardWeights2 = [45, 30, 15, 10] as const;
+
+  const customerNames = [
+    "Alex Chen", "Jordan Smith", "Taylor Brown", "Morgan Davis", "Casey Wilson",
+    "Riley Johnson", "Avery Martinez", "Quinn Thompson", "Blake Anderson", "Drew Williams",
+    "Sam Garcia", "Jamie Miller", "Chris Rodriguez", "Pat Lee", "Skyler Turner",
+    "Dana White", "Jesse Harris", "Logan Clark", "Reese Lewis", "Cameron Walker",
+  ] as const;
+
+  const cardholderNames = [
+    "Alex Chen", "Jordan Smith", "Taylor Brown", "Morgan Davis", "Casey Wilson",
+    "Riley Johnson", "Avery Martinez", "Quinn Thompson", "Blake Anderson", "Drew Williams",
+    "Sam Garcia", "Jamie Miller", "Chris Rodriguez", "Pat Lee", "Skyler Turner",
+  ] as const;
+
+  // ── 120 completed orders: Apr 1–30, 2026 (4 per day) ─────────────────────
+  let completedCount = 0;
+  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+    const day = dayOffset + 1; // Apr 1–30
+
+    for (let i = 0; i < 4; i++) {
+      const hour   = rndWeighted(hours, hourWeights);
+      const minute = rndInt(0, 59);
+      const orderTime = new Date(2026, 3, day, hour, minute, 0); // month 3 = April
+
+      const employee = rndWeighted(serverEmps, serverWeights);
+
+      // Pick 1–4 distinct items with weighted selection
+      const itemCount = rndWeighted([1, 2, 3, 4] as const, [15, 40, 30, 15] as const);
+      const usedItemIds = new Set<number>();
+      const chosenItems: Array<{ itemId: number; price: number; qty: number }> = [];
+
+      for (let j = 0; j < itemCount; j++) {
+        const available = menuPool.filter(m => !usedItemIds.has(m.itemId));
+        if (available.length === 0) break;
+        const chosen = rndWeighted(available, available.map(a => a.weight));
+        usedItemIds.add(chosen.itemId);
+        const qty = rndWeighted([1, 2] as const, [80, 20] as const);
+        chosenItems.push({ itemId: chosen.itemId, price: chosen.price, qty });
+      }
+
+      const subtotal = r2(chosenItems.reduce((s, c) => s + c.price * c.qty, 0));
+
+      // Optional discount (~20% of orders)
+      let discountAmount = 0;
+      let appliedDiscount: (typeof discountPool)[number]["disc"] | null = null;
+      if (prng() < 0.20) {
+        appliedDiscount = rndWeighted(
+          discountPool.map(d => d.disc),
+          discountPool.map(d => d.weight),
+        );
+        const dv = appliedDiscount.value.toNumber();
+        discountAmount = appliedDiscount.type === "percent"
+          ? r2(subtotal * dv / 100)
+          : Math.min(subtotal, dv);
+      }
+
+      const taxable = r2(Math.max(0, subtotal - discountAmount));
+      const tax     = r2(taxable * 0.0875);
+      const tipRate = rndWeighted(tipRates, tipWeights);
+      const tip     = r2(taxable * tipRate);
+      const total   = r2(taxable + tax + tip);
+
+      const fireTime = new Date(orderTime.getTime() + rndInt(8, 20) * 60_000);
+
+      const order = await prisma.order.create({
+        data: {
+          customerName:      prng() < 0.60 ? rndPick(customerNames) : null,
+          storeNumber:       restaurant.storeNumber,
+          taxPercent:        8.75,
+          tip:               tip > 0 ? tip : null,
+          subtotal,
+          total,
+          preparationStatus: "completed",
+          paymentStatus:     "paid",
+          employeeId:        employee.employeeId,
+          timestamp:         orderTime,
+          orderItems: {
+            create: chosenItems.map(c => ({
+              itemId:          c.itemId,
+              quantity:        c.qty,
+              priceAtPurchase: c.price,
+              kitchenStatus:   "delivered",
+              firedAt:         fireTime,
+            })),
+          },
+        },
+      });
+
+      if (appliedDiscount !== null) {
+        await prisma.orderDiscount.create({
+          data: { orderId: order.orderId, discountId: appliedDiscount.discountId },
+        });
+      }
+
+      // Payment (70% card / 30% cash)
+      const isCard  = prng() < 0.70;
+      const payment = await prisma.payment.create({
+        data: { orderId: order.orderId, type: isCard ? "electronic" : "cash", amount: total },
+      });
+
+      if (isCard) {
+        const brand    = rndWeighted(cardBrands, cardWeights2);
+        const lastFour = String(rndInt(1000, 9999));
+        const card     = await prisma.card.create({
+          data: {
+            cardholderName:  rndPick(cardholderNames),
+            token:           `tok_seed_${lastFour}_${order.orderId}`,
+            lastFour,
+            brand,
+            expirationMonth: rndInt(1, 12),
+            expirationYear:  rndInt(2026, 2030),
+          },
+        });
+        await prisma.electronicPayment.create({
+          data: { cardId: card.cardId, paymentId: payment.paymentId },
+        });
+      }
+
+      completedCount++;
+    }
+  }
+
+  // ── 6 cancelled orders (unpaid, no items) ────────────────────────────────
+  for (let k = 0; k < 6; k++) {
+    const day        = rndInt(1, 29);
+    const hour       = rndWeighted(hours, hourWeights);
+    const orderTime  = new Date(2026, 3, day, hour, rndInt(0, 59), 0);
+    const employee   = rndWeighted(serverEmps, serverWeights);
+    await prisma.order.create({
+      data: {
+        customerName:      prng() < 0.50 ? rndPick(customerNames) : null,
+        storeNumber:       restaurant.storeNumber,
+        taxPercent:        8.75,
+        subtotal:          0,
+        total:             0,
+        preparationStatus: "cancelled",
+        paymentStatus:     "unpaid",
+        employeeId:        employee.employeeId,
+        timestamp:         orderTime,
+      },
+    });
+  }
 
   // ── Demo order (one completed tab to show history) ────────────────────────
   const fireTime = new Date("2026-04-26T12:30:00");
@@ -538,6 +765,7 @@ async function main() {
   console.log(`  Addresses: 13 | Product types: 10 | Products: 22 | Packages: 5`);
   console.log(`  Roles: 10 | Employees: 10 | Discounts: 10 | Shifts: 7`);
   console.log(`  Inventory transactions: ${stockLevels.length} (initial stock)`);
+  console.log(`  Analytics orders: ${completedCount} completed + 6 cancelled + 1 demo`);
 }
 
 main()

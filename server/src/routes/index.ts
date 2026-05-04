@@ -9,6 +9,7 @@ import tabRouter from "./tabs.ts";
 import kitchenRouter from "./kitchen.ts";
 import menuRouter from "./menu.ts";
 import scheduleRouter from "./schedule.ts";
+import analyticsRouter from "./analytics.ts";
 
 const router = Router();
 
@@ -37,5 +38,8 @@ router.use("/menu", menuRouter);
 
 // Manager: schedule (FR-SCH-1 – FR-SCH-4)
 router.use("/schedule", scheduleRouter);
+
+// Manager: analytics dashboard (FR-ANALYTICS-1 – FR-ANALYTICS-7)
+router.use("/analytics", analyticsRouter);
 
 export default router;
