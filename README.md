@@ -1,10 +1,23 @@
 # CS431 Restaurant POS
-
 A tab-based point-of-sale web application with three role surfaces:
 
-- **Server Console** — open tabs, add items, fire rounds to the kitchen, close out with payment
-- **Kitchen Expediter** — view active tickets with live elapsed time, bump when ready
-- **Manager Console** — order history, inventory management, employee schedule, analytics dashboard
+## Manager Console
+- order history, inventory management, employee schedule, analytics dashboard
+<img width="2533" height="1322" alt="Screenshot 2026-05-06 085827" src="https://github.com/user-attachments/assets/a35b266c-fac2-4a0a-83ac-ad11f47f2aa0" />
+
+## Kitchen Display System
+- view active tickets with live elapsed time, bump when ready
+<img width="2558" height="1348" alt="Screenshot 2026-05-06 085752" src="https://github.com/user-attachments/assets/30d1fd69-c229-4339-a218-643af77c3a1a" />
+
+## Server Console
+- open tabs, add items, fire rounds to the kitchen, close out with payment
+<img width="2559" height="1356" alt="Screenshot 2026-05-06 085731" src="https://github.com/user-attachments/assets/3aea0aec-6fba-4e3c-8c48-f1efb6f1192f" />
+
+
+
+
+
+
 
 ## Prerequisites
 
